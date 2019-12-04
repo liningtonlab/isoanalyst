@@ -25,21 +25,7 @@ https://pandas.pydata.org/pandas-docs/stable/user_guide/enhancingperf.html#cytho
 """
 
 
-def checkdir(my_dir):
-    """Create a directory if is doesn't exist
-    Useful for creating output directories.
-
-    !! May be unnecessary
-    Args:
-        my_dir (str or Path): Path to directory
-    """
-    # Make sure directory exists
-    my_dir = Path(my_dir)
-    if not my_dir.exists():
-        my_dir.mkdir()
-
-
-def ppm_tolerance(mass):
+def ppm_tolerance(mass, error=10):
     """Determine high,low error range for a given mass
     Range of (mass-10ppm, mass+10ppm)
 
@@ -49,24 +35,10 @@ def ppm_tolerance(mass):
     Returns:
         tuple: Low, High error range
     """
-    ppm = (mass)/((1/10)*1000000) # Equiv 10 PPM
+    ppm = mass * (error*1E-6)
     high = mass+ppm
     low = mass-ppm
 
-    return (low, high)
-
-
-def rt_tolerance(rt):
-    """Determine high,low error range for a given retention time
-
-    Args:
-        rt (float): Retention time to calculate error range for
-
-    Returns:
-        tuple: Low, High error range
-    """
-    high = rt + 0.03
-    low = rt - 0.03
     return (low, high)
 
 
@@ -95,24 +67,8 @@ def combine_dfs(dfs):
     return pd.concat(dfs, sort=False).reset_index(drop=True)
 
 
-def outerjoin_dfs(dfs):
-    """DEPRECATE - this solution works but is very CPU and time intensive
-    Much better to use built in pd.concat
-
-    Combine any number of pandas dataframe by outer join
-    Useful for combining replicates or experimental conditions
-
-    Args:
-        dfs (list): List of pd.DataFrame objects
-
-    Returns:
-        pd.DataFrame: A combined pandas dataframe
-    """
-    return reduce(lambda left,right: pd.merge(left,right,how='outer'), dfs)
-
-
-'''All functions for munging cppis.csv files to create an mz masterlist containing all real features in
-unlabelled control samples'''
+'''All functions for munging cppis.csv files to create an mz masterlist containing
+all real features in unlabelled control samples'''
 
 def drop_cppis(df, inplace=True):
     """ Take cppis csv from MSeXpress and drops unnecessary columns and duplicates
@@ -167,158 +123,6 @@ def getfilenames_cppis(cppis_dir, conditions):
     return files
 
 
-def averages(df, col="reps"):
-    grouped = df.groupby(col)
-    new_data =[]
-    for idx, grp in grouped:
-        new_data.append(
-        {
-            "Sample": re.split('[_-]', grp.Sample.iloc[0])[1],
-            "PrecMz": round(grp.PrecMz.mean(), 4),
-            "RetTime": round(grp.RetTime.mean(), 3),
-            "PrecZ": grp.PrecZ.iloc[0],
-            "LowScan": grp.ScanLowRange.min(),
-            "HighScan": grp.ScanHighRange.max(),
-            "reps": idx
-        })
-    return pd.DataFrame(new_data)
-
-def cat_averages(df, gcol="reps"):
-    """
-    index must be C_#
-    calculates average mz & RT for each C_# and adds this data to new cols
-    also grabs low and high scans for the range to use in all replicates
-    """
-    groups = df.set_index(gcol)
-    for i in groups.index:
-        temp = groups.loc[i,:]
-        reps_mz = [temp['PrecMz']]
-        reps_RT = [temp['RetTime']]
-        groups.loc[i,'PrecMz'] = round(np.average(reps_mz), 4)
-        groups.loc[i,'RetTime'] = round(np.average(reps_RT), 3)
-        groups.loc[i,'LowScan'] = temp['ScanLowRange'].min()
-        groups.loc[i,'HighScan'] = temp['ScanHighRange'].max()
-
-    final = groups.reset_index()
-    return final
-
-# takes output from averages(df) and munges the table to be used for
-# next steps in processing- combine for label condition & combine for all labels.
-def collapse_avg(df):
-    cond = df.loc[0,'Sample']
-    name = re.split('[_ -]',cond)
-    drop_reps = df.drop_duplicates('reps')
-    drop_reps['Sample'] = name[1]
-    final = drop_reps.reset_index(drop=True)
-    return final
-
-
-def group_cppis(df, c, new):
-    """Apply grouping to cppis-like dataframe inplace
-
-    This function takes a df in 'cppis-like' format (uses , loops through each row(ions) and
-    identifies ions that are the same based on mz and RT tolerances groups them together in
-    new column 'new' as c_1,c_2,c_3,etc. new is the new column name, c is the group # assignment typically
-    based on experimental condition.
-
-    Args:
-        df (pd.DataFrame): cppis-like dataframe to process
-        c (str): group # assignment typically based on experimental condition.
-        new (str): Name for grouping column
-    """
-    # create column for "compound" c_#
-    df[new] = np.nan
-    counter = 1
-    # loop through data one row at a time
-    seen = set()
-    for row in df.itertuples():
-        # if in seen, continue
-        if row.Index in seen:
-            continue
-
-        mz_range = ppm_tolerance(row.PrecMz)
-        rt_range = rt_tolerance(row.RetTime)
-
-        # Create masks for selecting data
-        low_mz = df['PrecMz'] > mz_range[0]
-        high_mz = df['PrecMz'] < mz_range[1]
-        low_rt = df['RetTime'] > rt_range[0]
-        high_rt = df['RetTime'] < rt_range[1]
-        matching_z = df['PrecZ'] == row.PrecZ
-        # removes indices which have been labelled from slics
-        not_in_seen = df.apply(lambda x: x.name not in seen, axis=1)
-
-        # find all other rows with compatible mz, rt, and Z, and assign a c_#
-        # Assign a value to the pandas slice
-        # df.loc[low_rt&high_rt&low_mz&high_mz&matching_z&not_in_seen, new] = f"{c}_{counter}"
-        df.loc[low_rt&high_rt&low_mz&high_mz&matching_z&not_in_seen, new] = f"{c}_{counter}"
-        # any_seen = any(row.Index in seen for row in df.loc[low_rt&high_rt&low_mz&high_mz&matching_z].itertuples())
-        # if any_seen:
-            # print("Some have been seen!")
-        seen.update(df.loc[low_rt&high_rt&low_mz&high_mz&matching_z&not_in_seen].index)
-        counter += 1
-
-    # All the above edits df inplace
-    # return df
-
-
-# removes ions that are in less than 3 samples based on c_# in column t
-# c_# is assigned in the group_cppis() function
-def replicate_filter(df, col, min_reps=3, inplace=True):
-    """Remove fragments where there are less than min_reps values for each
-    identifer=col
-
-    Args:
-        df (pd.DataFrame): DataFrame to work on
-        col (str): Column containing identifier info
-        min_reps (int, optional): Min number of replicated to consider. Defaults to 3.
-    """
-    grouped = df.groupby(col)
-    to_drop = []
-    for _, g in grouped:
-        if g.shape[0] < min_reps:
-            to_drop.extend(g.index)
-    # Will return None if inplace=True, else return DataFrame
-    return df.drop(to_drop, inplace=inplace)
-
-
-def OLD_munge_cppis(files, cond, out_dir):
-    """Pre-process data for specific condition before detecting isotope labelling
-
-    Args:
-        files (pd.DataFrame): DataFrame containing list of filenames from getfilenames_cppis function
-        cond (str): condition ie ACE, ACED0, BLANK, etc
-        out_dir (str or Path): Directory to put outputs in
-
-    Returns:
-        pd.DataFrame: DataFrame which has been pre-processed for IsoTracing
-    """
-    out_dir = Path(out_dir)
-    replicates = files[files['condition'] == cond] # get filenames associated with current condition
-    dfs = [pd.read_csv(f) for f in replicates['path']]
-    _ = [drop_cppis(df) for df in dfs]
-
-    # All reps dataframe
-    # Will be editted inplace along the wa=y
-    df = combine_dfs(dfs)
-    df.to_csv(out_dir.joinpath('All_ions_sorted.csv'), index=False)
-
-    # Could be replaces with Rtree/Conn-comp like approach
-    # which would likely be faster but less transparent
-    group_cppis(df, cond, 'reps')
-    df.to_csv(out_dir.joinpath('All_ions_grouped.csv'), index=False)
-
-    replicate_filter(df, 'reps')
-    df.to_csv(out_dir.joinpath('All_ions_filtered.csv'), index=False)
-
-    # Reduce to a single function which averages and collapses dataframe
-    # averages does return a new dataframe
-    averaged = averages(df)
-    averaged.to_csv(out_dir.joinpath('All_ions_averaged.csv'), index=False)
-
-    return averaged
-
-
 def munge_cppis(files, cond, out_dir):
     """Pre-process data for specific condition before detecting isotope labelling
 
@@ -326,9 +130,6 @@ def munge_cppis(files, cond, out_dir):
         files (pd.DataFrame): DataFrame containing list of filenames from getfilenames_cppis function
         cond (str): condition ie ACE, ACED0, BLANK, etc
         out_dir (str or Path): Directory to put outputs in
-
-    REMOVED:
-        cppis_dir (str or Path): Input directory with CPPIS files (now built into getfilenames)
 
     Returns:
         pd.DataFrame: DataFrame which has been pre-processed for IsoTracing
@@ -349,33 +150,6 @@ def munge_cppis(files, cond, out_dir):
     averaged.to_csv(out_dir.joinpath('All_ions_averaged.csv'), index=False)
 
     return averaged
-
-
-def OLD_blank_subtract(blank_df, df, inplace=True):
-    """Given a DF of blank data and another DF, remove blanks from DF
-
-    Args:
-        blank_df (pd.DataFrame): Blanks data frame
-        df (pd.DataFrame): Other CPPIS like DF
-        inplace (bool, optional): Edit dataframe in place. Defaults to True.
-    """
-    # Keep a set of IDs to drop
-    drop_me = set()
-
-    for data in blank_df.itertuples():
-        mz_range = ppm_tolerance(data.PrecMz)
-        rt_range = rt_tolerance(data.RetTime)
-        low_mz = df['PrecMz'] > mz_range[0]
-        high_mz = df['PrecMz'] < mz_range[1]
-        low_rt = df['RetTime'] > rt_range[0]
-        high_rt = df['RetTime'] < rt_range[1]
-        matching_z = df['PrecZ'] == data.PrecZ
-
-        # This will add unique indices to set for dropping
-        drop_me.update(df[low_rt&high_rt&low_mz&high_mz&matching_z].index)
-
-    # Will return None if inplace=True, else return DataFrame
-    return df.drop(list(drop_me), inplace=inplace)
 
 
 def blank_subtract(blank_df, df, inplace=True):

@@ -5,13 +5,10 @@ from core import cppis_masterlist, isotope_scraper
 
 def main():
     '''User provided arguments'''
+    # TODO: Generate CLI for code
 
     # Input directory
-
-    # source_dir = '/Volumes/TimeMachineBackups/201908_RLUS1353/20190808/seven/'
-    # source_dir = Path("./IsotopedataProcessing/J1").absolute()
     source_dir = Path("./IsotopedataProcessing/J2").absolute()
-
 
     # Experiment name or organism name, applies to whole dataset
     # for naming output files
@@ -42,6 +39,7 @@ def main():
     master = None # for continuing
     master = cppis_masterlist(source_dir, conditions, exp_name)
     isotope_scraper(source_dir, conditions, master=master)
+
 
 if __name__ == "__main__":
     main()

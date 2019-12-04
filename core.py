@@ -7,7 +7,7 @@ import pandas as pd
 
 import dereplicator
 from utils import (blank_subtract, calc_exp, combine_dfs, getfilenames_cppis,
-                   group_cppis, isotope_slicer, munge_cppis, prep_func)
+                   isotope_slicer, munge_cppis, prep_func)
 
 
 def cppis_masterlist(source_dir, conditions, exp_name):
@@ -29,6 +29,7 @@ def cppis_masterlist(source_dir, conditions, exp_name):
     # peaks in blanks to subtract later
     blanks = munge_cppis(cppis_files, 'BLANK', blank_dir)
 
+    # TODO: Re-do secondary condition preparation and processing
     # if sec_arg == 1:
     #     for p in primary:
     #         sec_dfs = [] #dfs to combine for each primary condition
@@ -52,16 +53,14 @@ def cppis_masterlist(source_dir, conditions, exp_name):
         all_collapsed = munge_cppis(cppis_files, cond, out_dir)
         return all_collapsed
 
-    futures = joblib.Parallel(8)(joblib.delayed(munge_condition)(c) for c in conditions)
+    # Run pre-processing on conditions in separate processes
+    prim_dfs = joblib.Parallel(n_jobs=-1)(joblib.delayed(munge_condition)(c) for c in conditions)
 
-    # Collect futures results into list
-    prim_dfs = list(futures)
     all_primary = combine_dfs(prim_dfs)
     print("Substracting blanks")
     blank_subtract(blanks, all_primary) # blank subtraction on full dataset
     print("Grouping all features")
     all_primary.reset_index(inplace=True, drop=True)
-    # group_cppis(all_primary, exp_name, 'Exp_ID') # final grouping - Exp_ID used for func001 munging
     dereplicator.group_features(all_primary, exp_name, 'Exp_ID') # final grouping - Exp_ID used for func001 munging
     all_primary.to_csv(source_dir.joinpath(f'{exp_name}_All_features.csv'), index=False)
     return all_primary
@@ -84,9 +83,8 @@ def isotope_scraper(source_dir, conditions, master=None):
     # dir for all output files containing scan data for each cond
     out_dir = source_dir.joinpath('All_scan_data')
     out_dir.mkdir(parents=True, exist_ok=True)
-    def run_isoslicer(c):
-         # header.to_csv(out_dir.joinpath(f'All_ions_{c}.csv'), index = False) # make file to add iso data to
 
+    def run_isoslicer(c):
         # add replicate func files for current condition
         c_funcs = filter(lambda f: c in f.name, func_files)
         c_dfs = (prep_func(f) for f in c_funcs)
@@ -114,9 +112,11 @@ def isotope_scraper(source_dir, conditions, master=None):
             #  within given scan range in given func file
             isotope_slicer(func_df, mz, low_scan, high_scan, idx, seen)
 
-        joblib.Parallel(-1, require='sharedmem')(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
+        # Will run slicing in multiple threads with shared memory for seen set
+        joblib.Parallel(n_jobs=-1, require='sharedmem')(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
 
         # write iso_scan_data to a file for that condition
         func_df.to_csv(out_dir.joinpath(f'All_ions_{c}.csv'), index=False)
-    # [run_isoslicer(c) for c in conditions]
-    joblib.Parallel(4)(joblib.delayed(run_isoslicer)(c) for c in conditions)
+
+    # Run processing of each condition in separate process
+    joblib.Parallel(n_jobs=-1)(joblib.delayed(run_isoslicer)(c) for c in conditions)
