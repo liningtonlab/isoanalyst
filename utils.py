@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-import glob
-import os
 import re
 from functools import reduce
 from pathlib import Path
@@ -11,12 +9,13 @@ import pandas as pd
 
 import dereplicator
 
+
 """NOTES
 See:
 https://pandas.pydata.org/pandas-docs/stable/getting_started/basics.html#iteration
 
 1) pandas `.ix` indexer is deprecated and will be removed soon
-2) Iterating through DataFrames is "slow" -> vectorize with df.COL.apply 
+2) Iterating through DataFrames is "slow" -> vectorize with df.COL.apply
 3) If need to iterate through df, use df.itertuples(). This returns a namedtuple
    so you can access attributes using row.COL and the index with row.Index
 4) I like to use pathlib Path for OS operations
@@ -29,7 +28,7 @@ https://pandas.pydata.org/pandas-docs/stable/user_guide/enhancingperf.html#cytho
 def checkdir(my_dir):
     """Create a directory if is doesn't exist
     Useful for creating output directories.
-    
+
     !! May be unnecessary
     Args:
         my_dir (str or Path): Path to directory
@@ -38,15 +37,15 @@ def checkdir(my_dir):
     my_dir = Path(my_dir)
     if not my_dir.exists():
         my_dir.mkdir()
-        
+
 
 def ppm_tolerance(mass):
     """Determine high,low error range for a given mass
     Range of (mass-10ppm, mass+10ppm)
-    
+
     Args:
         mass (float): Mass to calculate error range for
-    
+
     Returns:
         tuple: Low, High error range
     """
@@ -56,13 +55,13 @@ def ppm_tolerance(mass):
 
     return (low, high)
 
-    
+
 def rt_tolerance(rt):
     """Determine high,low error range for a given retention time
-    
+
     Args:
         rt (float): Retention time to calculate error range for
-    
+
     Returns:
         tuple: Low, High error range
     """
@@ -73,11 +72,11 @@ def rt_tolerance(rt):
 
 def c_isotope(mass, sign=1):
     """Add mass difference from 12C to 13C to mass
-    
+
     Args:
         mass (float): Mass to calculate against
         sign (int): Optional: Plus or minus 1. Default=1
-    
+
     Returns:
         float: Mass plus mass difference from 12C to 13C
     """
@@ -102,22 +101,22 @@ def outerjoin_dfs(dfs):
 
     Combine any number of pandas dataframe by outer join
     Useful for combining replicates or experimental conditions
-    
+
     Args:
         dfs (list): List of pd.DataFrame objects
-    
+
     Returns:
         pd.DataFrame: A combined pandas dataframe
     """
     return reduce(lambda left,right: pd.merge(left,right,how='outer'), dfs)
 
 
-'''All functions for munging cppis.csv files to create an mz masterlist containing all real features in 
+'''All functions for munging cppis.csv files to create an mz masterlist containing all real features in
 unlabelled control samples'''
 
 def drop_cppis(df, inplace=True):
     """ Take cppis csv from MSeXpress and drops unnecessary columns and duplicates
-    
+
     Args:
         df (pd.DataFrame): cppis type dataframe
         inplace (bool, optional): Edit dataframe in place. Defaults to True.
@@ -127,14 +126,14 @@ def drop_cppis(df, inplace=True):
     else:
         data = df
     if not inplace:
-        data = data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual', 
+        data = data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual',
                     'FragEff', 'IsoA0Ratio','IsoA1Ratio','IsoA2Ratio','IsoA0RatioCV','IsoA1RatioCV',
                     'IsoA2RatioCV','IsoA3RatioCV','IsoA3Ratio','ProdMHplus','ProdMz', 'ProdIntensity',
                     'Ar1','Ar3','A0ProdMzBindex'], errors='ignore', axis=1, inplace=inplace)
     else:
-        data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual', 
+        data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual',
                     'FragEff', 'IsoA0Ratio','IsoA1Ratio','IsoA2Ratio','IsoA0RatioCV','IsoA1RatioCV',
-                    'IsoA2RatioCV','IsoA3RatioCV','IsoA3Ratio','ProdMHplus','ProdMz', 'ProdIntensity', 
+                    'IsoA2RatioCV','IsoA3RatioCV','IsoA3Ratio','ProdMHplus','ProdMz', 'ProdIntensity',
                     'Ar1','Ar3','A0ProdMzBindex'], errors='ignore', axis=1, inplace=inplace)
     # Will return None if inplace=True, else return DataFrame
     return data.drop_duplicates(inplace=inplace)
@@ -142,24 +141,24 @@ def drop_cppis(df, inplace=True):
 
 def getfilenames_cppis(cppis_dir, conditions):
     """Collect files and specify conditions
-    This ensures that all the replicates get filed and munged together. 
+    This ensures that all the replicates get filed and munged together.
     This is used within the munge_cppis() function
     # TODO: Add robustness
     # To reconsider - overhead of DF may not be worth it
 
     Args:
         cppis_dir (str or Path): Path to input cppis files
-    
+
     Returns:
         pd.DataFrame: DataFrame containing files and conditions
     """
     condition_regexp = re.compile(f"({'|'.join(conditions)}|BLANK)")
     find_condition = lambda x: condition_regexp.search(x).group()
-        
+
     # look in cppis folder for all .csv files
     cppis_dir = Path(cppis_dir)
     cppis_csvs = list(cppis_dir.glob("*.csv"))
-    
+
     files = pd.DataFrame({
         "path": cppis_csvs,
         "filename": [x.name for x in cppis_csvs],
@@ -177,7 +176,7 @@ def averages(df, col="reps"):
             "Sample": re.split('[_-]', grp.Sample.iloc[0])[1],
             "PrecMz": round(grp.PrecMz.mean(), 4),
             "RetTime": round(grp.RetTime.mean(), 3),
-            "PrecZ": grp.PrecZ.iloc[0], 
+            "PrecZ": grp.PrecZ.iloc[0],
             "LowScan": grp.ScanLowRange.min(),
             "HighScan": grp.ScanHighRange.max(),
             "reps": idx
@@ -188,7 +187,7 @@ def cat_averages(df, gcol="reps"):
     """
     index must be C_#
     calculates average mz & RT for each C_# and adds this data to new cols
-    also grabs low and high scans for the range to use in all replicates 
+    also grabs low and high scans for the range to use in all replicates
     """
     groups = df.set_index(gcol)
     for i in groups.index:
@@ -199,12 +198,12 @@ def cat_averages(df, gcol="reps"):
         groups.loc[i,'RetTime'] = round(np.average(reps_RT), 3)
         groups.loc[i,'LowScan'] = temp['ScanLowRange'].min()
         groups.loc[i,'HighScan'] = temp['ScanHighRange'].max()
-    
+
     final = groups.reset_index()
     return final
 
-# takes output from averages(df) and munges the table to be used for 
-# next steps in processing- combine for label condition & combine for all labels. 
+# takes output from averages(df) and munges the table to be used for
+# next steps in processing- combine for label condition & combine for all labels.
 def collapse_avg(df):
     cond = df.loc[0,'Sample']
     name = re.split('[_ -]',cond)
@@ -216,9 +215,9 @@ def collapse_avg(df):
 
 def group_cppis(df, c, new):
     """Apply grouping to cppis-like dataframe inplace
-    
-    This function takes a df in 'cppis-like' format (uses , loops through each row(ions) and 
-    identifies ions that are the same based on mz and RT tolerances groups them together in 
+
+    This function takes a df in 'cppis-like' format (uses , loops through each row(ions) and
+    identifies ions that are the same based on mz and RT tolerances groups them together in
     new column 'new' as c_1,c_2,c_3,etc. new is the new column name, c is the group # assignment typically
     based on experimental condition.
 
@@ -248,7 +247,7 @@ def group_cppis(df, c, new):
         matching_z = df['PrecZ'] == row.PrecZ
         # removes indices which have been labelled from slics
         not_in_seen = df.apply(lambda x: x.name not in seen, axis=1)
-        
+
         # find all other rows with compatible mz, rt, and Z, and assign a c_#
         # Assign a value to the pandas slice
         # df.loc[low_rt&high_rt&low_mz&high_mz&matching_z&not_in_seen, new] = f"{c}_{counter}"
@@ -263,12 +262,12 @@ def group_cppis(df, c, new):
     # return df
 
 
-# removes ions that are in less than 3 samples based on c_# in column t 
+# removes ions that are in less than 3 samples based on c_# in column t
 # c_# is assigned in the group_cppis() function
 def replicate_filter(df, col, min_reps=3, inplace=True):
     """Remove fragments where there are less than min_reps values for each
     identifer=col
-    
+
     Args:
         df (pd.DataFrame): DataFrame to work on
         col (str): Column containing identifier info
@@ -285,12 +284,12 @@ def replicate_filter(df, col, min_reps=3, inplace=True):
 
 def OLD_munge_cppis(files, cond, out_dir):
     """Pre-process data for specific condition before detecting isotope labelling
-    
+
     Args:
         files (pd.DataFrame): DataFrame containing list of filenames from getfilenames_cppis function
         cond (str): condition ie ACE, ACED0, BLANK, etc
         out_dir (str or Path): Directory to put outputs in
-    
+
     Returns:
         pd.DataFrame: DataFrame which has been pre-processed for IsoTracing
     """
@@ -300,10 +299,10 @@ def OLD_munge_cppis(files, cond, out_dir):
     _ = [drop_cppis(df) for df in dfs]
 
     # All reps dataframe
-    # Will be editted inplace along the wa=y 
+    # Will be editted inplace along the wa=y
     df = combine_dfs(dfs)
     df.to_csv(out_dir.joinpath('All_ions_sorted.csv'), index=False)
-    
+
     # Could be replaces with Rtree/Conn-comp like approach
     # which would likely be faster but less transparent
     group_cppis(df, cond, 'reps')
@@ -320,18 +319,17 @@ def OLD_munge_cppis(files, cond, out_dir):
     return averaged
 
 
-# def munge_cppis(files, cond, out_dir, **kwargs):
 def munge_cppis(files, cond, out_dir):
     """Pre-process data for specific condition before detecting isotope labelling
-    
+
     Args:
         files (pd.DataFrame): DataFrame containing list of filenames from getfilenames_cppis function
         cond (str): condition ie ACE, ACED0, BLANK, etc
         out_dir (str or Path): Directory to put outputs in
-    
+
     REMOVED:
         cppis_dir (str or Path): Input directory with CPPIS files (now built into getfilenames)
-    
+
     Returns:
         pd.DataFrame: DataFrame which has been pre-processed for IsoTracing
     """
@@ -355,15 +353,15 @@ def munge_cppis(files, cond, out_dir):
 
 def OLD_blank_subtract(blank_df, df, inplace=True):
     """Given a DF of blank data and another DF, remove blanks from DF
-    
+
     Args:
         blank_df (pd.DataFrame): Blanks data frame
         df (pd.DataFrame): Other CPPIS like DF
         inplace (bool, optional): Edit dataframe in place. Defaults to True.
     """
-    # Keep a set of IDs to drop 
+    # Keep a set of IDs to drop
     drop_me = set()
-    
+
     for data in blank_df.itertuples():
         mz_range = ppm_tolerance(data.PrecMz)
         rt_range = rt_tolerance(data.RetTime)
@@ -372,16 +370,17 @@ def OLD_blank_subtract(blank_df, df, inplace=True):
         low_rt = df['RetTime'] > rt_range[0]
         high_rt = df['RetTime'] < rt_range[1]
         matching_z = df['PrecZ'] == data.PrecZ
-        
+
         # This will add unique indices to set for dropping
         drop_me.update(df[low_rt&high_rt&low_mz&high_mz&matching_z].index)
 
     # Will return None if inplace=True, else return DataFrame
     return df.drop(list(drop_me), inplace=inplace)
 
+
 def blank_subtract(blank_df, df, inplace=True):
     """Given a DF of blank data and another DF, remove blanks from DF
-    
+
     Args:
         blank_df (pd.DataFrame): Blanks data frame
         df (pd.DataFrame): Other CPPIS like DF
@@ -389,20 +388,28 @@ def blank_subtract(blank_df, df, inplace=True):
     """
     # Make sure indices are sequential integers 0,1,2,etc...
     df.reset_index(inplace=True, drop=True)
-    # Keep a set of IDs to drop 
+    # Keep a set of IDs to drop
     drop_me = dereplicator.find_overlap(df, blank_df)
     # Will return None if inplace=True, else return DataFrame
     return df.drop(drop_me, inplace=inplace)
 
 
 def prep_func(fname, **kwargs):
+    """Drop unnecessary columns and add metadata to func001-like DF
+
+    Args:
+        fname (str or Path): Path to func001-like CSV
+
+    Returns:
+        pd.DataFrame: Pre-processed func001-like DF
+    """
     # Some defaults with flexibility for kwargs
     sname_char = kwargs.get("sname_char", "_")
     sname_index = kwargs.get("sname_index", 1)
     ignore_cols = kwargs.get("ignore_cols", ['drift','DriftFwhm','QuadMass'])
 
     fname = Path(fname)
-    sname = fname.name.split("_")[sname_index]
+    sname = fname.name.split(sname_char)[sname_index]
     df = pd.read_csv(fname).drop(ignore_cols, axis=1)
     df["Organism"], df["Isotope"], df["Condition"] = split_samplename(sname)
     return df
@@ -410,17 +417,30 @@ def prep_func(fname, **kwargs):
 
 def split_samplename(s):
     """Take sample name and split into organism, isotope, and condition tuple
-    
+
     Args:
         s (string): Sample name in format "RLUS1234ISODN
-    
+
     Returns:
         tuple: organism, isotope, condition strings tuple
     """
     return s[:8], s[8:10], s[10:]
 
 
-def mark_func_slice(df, mz, low_scan, high_scan, exp_id, seen, counter=0):
+def get_func_slice(df, mz, low_scan, high_scan, seen):
+    """Return the indices of func DF given mz, scan range, and seen list/et
+
+    Arguments:
+        df (pd.DataFrame): func001-like DataFrame to slice
+        mz (float): Mass to query
+        low_scan (int): LowScan
+        high_scan (int): HighScan
+        seen (set): Set of seen indices to ignore
+
+    Returns:
+        iterable: List-like of indices in func001-like DF
+    """
+    # print(len(seen))
     mz_tol = ppm_tolerance(mz)
     masks = (
         df['MZ'] >= mz_tol[0],
@@ -430,37 +450,56 @@ def mark_func_slice(df, mz, low_scan, high_scan, exp_id, seen, counter=0):
         [idx not in seen for idx in df.index],
     )
     func_slice = df[reduce(np.logical_and, masks)]
-    df.loc[func_slice.index, "Isotopomer"] = f"M{counter}"
-    df.loc[func_slice.index, "Exp_ID"] = exp_id
     seen.update(func_slice.index)
-    return len(func_slice.index) >= 5
+    return func_slice.index
+
+
+def calc_exp(g):
+    """Calculate the avgPrecMZ, Lowscan and HighScan for an ExpId
+
+    Args:
+        g (pd.DataFrame): Exp_ID DataFrame
+
+    Returns:
+        tuple: (avgPrecMz, LowScan, HighScan)
+    """
+    return round(g.PrecMz.mean(), 4), g['LowScan'].min(), g['LowScan'].max()
 
 
 def isotope_slicer(df, mz, low_scan, high_scan, exp_id, seen):
-    """Recursively find all isotope data associated with a given mass.
+    """Iteratively find all isotope data associated with a given mass.
     Continues until a slice has less than five datapoints.
-    
+
     Args:
         df (pd.DataFrame): Func001 dataframe
         mz (float): Precursor mass to start scanning from
         low_scan (int): Low scan value in CPPIS
         high_scan (int): High scan value in CPPIS
-    
+
     Labels DataFrame inplace
     """
-    df['Isotopomer'] = None
-    df['Exp_ID'] = None
     counter = 0
-    # Find base ion, 
-    mark_func_slice(df, mz, low_scan, high_scan, exp_id, seen, counter)
-    counter +=1
-    def iso_recur(df, mz, low_scan, high_scan, sign=1):
-        # find isotopes +/- C13
-        mn = c_isotope(mz, sign=sign)
-        should_continue = mark_func_slice(df, mz, low_scan, high_scan, exp_id, seen, counter)
-        if should_continue:
-            iso_recur(df, mn, low_scan, high_scan)
-    # Find all isotopes +1 C13
-    iso_recur(df, mz, low_scan, high_scan, sign=1)
-    # Find all isotopes -1 C13
-    iso_recur(df, mz, low_scan, high_scan, sign=-1)
+    to_mark = {}
+    # Find base ion,
+    to_mark[counter] = get_func_slice(df, mz, low_scan, high_scan, seen)
+
+    # find isotopes +/- C13
+    # Initialize while loop
+    # Need to look forwards only because CPPIS only contains M0 peaks
+    this_mz = mz
+    while True:
+        # print(f"Sign = {sign}")
+        counter += 1
+        mn = c_isotope(this_mz)
+        this_mz = mn
+        # print(f"{exp_id} - {this_mz} - {counter}")
+        indices = get_func_slice(df, mn, low_scan, high_scan, seen)
+        to_mark[counter] = indices
+        # print(f"Found {len(indices)} features")
+        # Stop condition
+        if len(indices) < 5:
+            break
+
+    for c, idc in to_mark.items():
+        df.loc[idc, "Isotopomer"] = f"M{c}"
+        df.loc[idc, "Exp_ID"] = exp_id

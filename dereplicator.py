@@ -1,4 +1,5 @@
 import json
+import os
 
 import numpy as np
 import pandas as pd
@@ -7,27 +8,26 @@ import rtree
 CONFIG = {
     "ColsToMatch": ["RetTime", "PrecMz", "PrecZ"],
     "Tolerances": {
-        "PrecMz": ["ppm", 10],
-        "RetTime": ["window", 0.03],
-        "PrecZ": ["window", 0.1],
+        "PrecMz": ("ppm", 10),
+        "RetTime": ("window", 0.03),
+        "PrecZ": (None, None),
     },
     "MinReps": 3,
 }
 
 def replicate_compare(df, config=CONFIG):
     """Take dataframe and perform Rtree comparison to replicate
-    
+
     Args:
         df (pd.DataFrame): Data to work on
-    
+
     Returns:
         pd.DataFrame: New dataframe with averaged data
     """
-    gen_error_cols(df, config['Tolerances'])
+    gen_error_cols(df, config)
     rects = get_rects(df, config)
     rtree = build_rtree(rects, config)
     con_comps = gen_con_comps(rtree, rects)
-    file_col = []
     new_data = []
     for c in con_comps:
         if len(c) > 1:
@@ -38,7 +38,29 @@ def replicate_compare(df, config=CONFIG):
     return pd.DataFrame(new_data).round(4)
 
 
-def gen_error_cols(df, errorinfo):
+def group_features(df, cname, new, config=CONFIG):
+    """Take dataframe and perform Rtree comparison to replicate,
+        marking features into groups
+
+    Args:
+        df (pd.DataFrame): Data to work on
+        c (str): group # assignment typically based on experimental condition.
+        new (str): Name for grouping column
+    """
+    r_df = df.copy()
+    gen_error_cols(r_df, config)
+    rects = get_rects(r_df, config)
+    rtree = build_rtree(rects, config)
+    con_comps = gen_con_comps(rtree, rects)
+    counter = 1
+
+    df[new] = np.nan
+    for c in con_comps:
+        df.loc[list(c), new] = f"{cname}_{counter}"
+        counter += 1
+
+
+def gen_error_cols(df, config):
     """
     Uses the errorinfo dict to generate
     error windows for each of the columns.
@@ -54,7 +76,7 @@ def gen_error_cols(df, errorinfo):
         errorinfo (dict): dict of error information
     """
 
-    for dcol, einfo in errorinfo.items():
+    for dcol, einfo in config["Tolerances"].items():
         col = df[dcol]
         etype, evalue = einfo
         if etype == 'ppm':
@@ -147,21 +169,21 @@ def collapse_data_rows(df: pd.DataFrame, datacols: list, calc_bin_info: bool=Fal
 
 def find_overlap(df1, df2, config=CONFIG):
     """Find overlap of df1 in df2 and return set of iloc indices from df1
-    
+
     Args:
         df1 (pd.DataFrame): Query DataFrame (Are any of DF1 rects in DF2)
         df2 (pd.DataFrame): Reference DataFrame
         config (dict, optional): Configuration dict. Defaults to CONFIG.
 
     Returns:
-        set: Set of iloc indices of df1 
+        set: Set of iloc indices of df1
     """
     # Make temp copies of dataframes
     query = df1.copy()
     ref = df2.copy()
-    gen_error_cols(ref, config['Tolerances'])
-    gen_error_cols(query, config['Tolerances'])
-    
+    gen_error_cols(ref, config)
+    gen_error_cols(query, config)
+
     ref_rects = get_rects(ref, config)
     query_rects = get_rects(query, config)
     tree = build_rtree(query_rects, config)
