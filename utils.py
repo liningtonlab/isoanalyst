@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 import dereplicator
+import exceptions as exc
 
 
 """NOTES
@@ -70,29 +71,28 @@ def combine_dfs(dfs):
 '''All functions for munging cppis.csv files to create an mz masterlist containing
 all real features in unlabelled control samples'''
 
-def drop_cppis(df, inplace=True):
+def drop_cppis(df, filter_rt=0.8):
     """ Take cppis csv from MSeXpress and drops unnecessary columns and duplicates
 
     Args:
         df (pd.DataFrame): cppis type dataframe
+        filter_df (float, optional): Remove features which have a retention time less than this value
+            MUST BE 0.0 or GREATER.
         inplace (bool, optional): Edit dataframe in place. Defaults to True.
+
+
     """
-    if not inplace:
-        data = df.copy()
-    else:
-        data = df
-    if not inplace:
-        data = data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual',
+    if not filter_rt >= 0.0:
+        raise exc.InvalidFilter()
+
+    data = df[df['RetTime'] > filter_rt].copy()
+
+    data = data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual',
                     'FragEff', 'IsoA0Ratio','IsoA1Ratio','IsoA2Ratio','IsoA0RatioCV','IsoA1RatioCV',
                     'IsoA2RatioCV','IsoA3RatioCV','IsoA3Ratio','ProdMHplus','ProdMz', 'ProdIntensity',
-                    'Ar1','Ar3','A0ProdMzBindex'], errors='ignore', axis=1, inplace=inplace)
-    else:
-        data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual',
-                    'FragEff', 'IsoA0Ratio','IsoA1Ratio','IsoA2Ratio','IsoA0RatioCV','IsoA1RatioCV',
-                    'IsoA2RatioCV','IsoA3RatioCV','IsoA3Ratio','ProdMHplus','ProdMz', 'ProdIntensity',
-                    'Ar1','Ar3','A0ProdMzBindex'], errors='ignore', axis=1, inplace=inplace)
-    # Will return None if inplace=True, else return DataFrame
-    return data.drop_duplicates(inplace=inplace)
+                    'Ar1','Ar3','A0ProdMzBindex'], errors='ignore', axis=1, inplace=True)
+
+    return data.drop_duplicates(inplace=True)
 
 
 def getfilenames_cppis(cppis_dir, conditions):
@@ -136,8 +136,7 @@ def munge_cppis(files, cond, out_dir):
     """
     out_dir = Path(out_dir)
     replicates = files[files['condition'] == cond] # get filenames associated with current condition
-    dfs = [pd.read_csv(f) for f in replicates['path']]
-    _ = [drop_cppis(df) for df in dfs]
+    dfs = [drop_cppis(pd.read_csv(f)) for f in replicates['path']]
     # All reps dataframe
     # Will be editted inplace along the way
     print("Combining DFs")
@@ -168,15 +167,20 @@ def blank_subtract(blank_df, df, inplace=True):
     return df.drop(drop_me, inplace=inplace)
 
 
-def prep_func(fname, **kwargs):
+def prep_func(fname, filter_rt=0.8, **kwargs):
     """Drop unnecessary columns and add metadata to func001-like DF
 
     Args:
         fname (str or Path): Path to func001-like CSV
+        filter_df (float, optional): Remove features which have a retention time less than this value
+            MUST BE 0.0 or GREATER.
 
     Returns:
         pd.DataFrame: Pre-processed func001-like DF
     """
+    if not filter_rt >= 0.0:
+        raise exc.InvalidFilter()
+
     # Some defaults with flexibility for kwargs
     sname_char = kwargs.get("sname_char", "_")
     sname_index = kwargs.get("sname_index", 1)
@@ -185,6 +189,7 @@ def prep_func(fname, **kwargs):
     fname = Path(fname)
     sname = fname.name.split(sname_char)[sname_index]
     df = pd.read_csv(fname).drop(ignore_cols, axis=1)
+    df = df[df['RT'] > filter_rt].copy()
     df["Organism"], df["Isotope"], df["Condition"] = split_samplename(sname)
     return df
 
