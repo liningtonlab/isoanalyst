@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 
 import dereplicator
+import exceptions as exc
 
 
 """NOTES
@@ -70,18 +71,13 @@ def combine_dfs(dfs):
 '''All functions for munging cppis.csv files to create an mz masterlist containing
 all real features in unlabelled control samples'''
 
-<<<<<<< HEAD
-def drop_cppis(df, filter_rt=0.8, **kwargs):
-=======
-def drop_cppis(df, inplace=True):
->>>>>>> parent of 4ccd875... Add RT filter to pre-processing
+def prep_cppis(fname, filter_rt=0.8, **kwargs):
     """ Take cppis csv from MSeXpress and drops unnecessary columns and duplicates
 
     Args:
-        df (pd.DataFrame): cppis type dataframe
+        fname (str or Path): Path to cppis type dataframe
         inplace (bool, optional): Edit dataframe in place. Defaults to True.
     """
-<<<<<<< HEAD
     # Validate filter
     if not filter_rt >= 0.0:
         raise exc.InvalidFilter()
@@ -92,31 +88,12 @@ def drop_cppis(df, inplace=True):
         'FragEff', 'IsoA0Ratio','IsoA1Ratio','IsoA2Ratio','IsoA0RatioCV','IsoA1RatioCV',
         'IsoA2RatioCV','IsoA3RatioCV','IsoA3Ratio','ProdMHplus','ProdMz', 'ProdIntensity',
         'Ar1','Ar3','A0ProdMzBindex'])
+    rt_col = kwargs.get("rt_col", "RetTime")
+    path = Path(fname)
 
+    df = pd.read_csv(path).drop(ignore_cols, errors='ignore', axis=1).drop_duplicates()
 
-    data = df[df['RetTime'] > filter_rt].copy()
-
-    data.drop(ignore_cols, errors='ignore', axis=1, inplace=True)
-
-    return data.drop_duplicates()
-=======
-    if not inplace:
-        data = df.copy()
-    else:
-        data = df
-    if not inplace:
-        data = data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual',
-                    'FragEff', 'IsoA0Ratio','IsoA1Ratio','IsoA2Ratio','IsoA0RatioCV','IsoA1RatioCV',
-                    'IsoA2RatioCV','IsoA3RatioCV','IsoA3Ratio','ProdMHplus','ProdMz', 'ProdIntensity',
-                    'Ar1','Ar3','A0ProdMzBindex'], errors='ignore', axis=1, inplace=inplace)
-    else:
-        data.drop(['PrecMHplus', 'CPPIS', 'PccChain', 'Mode', 'Func', 'Scan', 'Sequence', 'IsVirtual',
-                    'FragEff', 'IsoA0Ratio','IsoA1Ratio','IsoA2Ratio','IsoA0RatioCV','IsoA1RatioCV',
-                    'IsoA2RatioCV','IsoA3RatioCV','IsoA3Ratio','ProdMHplus','ProdMz', 'ProdIntensity',
-                    'Ar1','Ar3','A0ProdMzBindex'], errors='ignore', axis=1, inplace=inplace)
-    # Will return None if inplace=True, else return DataFrame
-    return data.drop_duplicates(inplace=inplace)
->>>>>>> parent of 4ccd875... Add RT filter to pre-processing
+    return df[df[rt_col] > filter_rt].copy()
 
 
 def getfilenames_cppis(cppis_dir, conditions):
@@ -160,8 +137,7 @@ def munge_cppis(files, cond, out_dir):
     """
     out_dir = Path(out_dir)
     replicates = files[files['condition'] == cond] # get filenames associated with current condition
-    dfs = [pd.read_csv(f) for f in replicates['path']]
-    _ = [drop_cppis(df) for df in dfs]
+    dfs = [prep_cppis(f) for f in replicates['path']]
     # All reps dataframe
     # Will be editted inplace along the way
     print("Combining DFs")
