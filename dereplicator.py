@@ -188,6 +188,6 @@ def find_overlap(df1, df2, config=CONFIG):
     query_rects = get_rects(query, config)
     tree = build_rtree(query_rects, config)
     overlap = set()
-    for i, r in enumerate(ref_rects):
+    for r in ref_rects:
         overlap.update(tree.intersection(r))
     return overlap

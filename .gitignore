@@ -1,6 +1,7 @@
 # Personalized
 .vscode/
-IsotopeDataProcessing
+IsotopeDataProcessing/
+isotope_experiments_data/
 .DS_Store
 
 # Byte-compiled / optimized / DLL files

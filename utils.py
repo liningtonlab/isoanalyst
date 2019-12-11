@@ -6,6 +6,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+from scipy.stats import linregress
 
 import dereplicator
 import exceptions as exc
@@ -71,15 +72,16 @@ def combine_dfs(dfs):
 '''All functions for munging cppis.csv files to create an mz masterlist containing
 all real features in unlabelled control samples'''
 
-def prep_cppis(fname, filter_rt=0.8, **kwargs):
+def prep_cppis(fname, min_rt=0.8, **kwargs):
     """ Take cppis csv from MSeXpress and drops unnecessary columns and duplicates
 
     Args:
         fname (str or Path): Path to cppis type dataframe
+        min_rt(float, optional): Filter RT less than this value. MUST BE >= 0
         inplace (bool, optional): Edit dataframe in place. Defaults to True.
     """
     # Validate filter
-    if not filter_rt >= 0.0:
+    if not min_rt >= 0.0:
         raise exc.InvalidFilter()
 
     # Flexiblility for ignore cols
@@ -93,7 +95,36 @@ def prep_cppis(fname, filter_rt=0.8, **kwargs):
 
     df = pd.read_csv(path).drop(ignore_cols, errors='ignore', axis=1).drop_duplicates()
 
-    return df[df[rt_col] > filter_rt].copy()
+    return df[df[rt_col] > min_rt].copy()
+
+
+def prep_func(fname, exp_name, min_rt=0.8, **kwargs):
+    """Drop unnecessary columns and add metadata to func001-like DF
+
+    Args:
+        fname (str or Path): Path to func001-like CSV
+        exp_name (str): Global experiment ID, used for splitting sample
+        min_rt(float, optional): Filter RT less than this value. MUST BE >= 0
+
+    Returns:
+        pd.DataFrame: Pre-processed func001-like DF
+    """
+    # Validate filter
+    if not min_rt >= 0.0:
+        raise exc.InvalidFilter()
+
+    # Some defaults with flexibility for kwargs
+    sname_char = kwargs.get("sname_char", "_")
+    sname_index = kwargs.get("sname_index", 1)
+    ignore_cols = kwargs.get("ignore_cols", ['drift','DriftFwhm','QuadMass', 'FunctionIndex'])
+    rt_col = kwargs.get("rt_col", "RT")
+
+    fname = Path(fname)
+    sname = fname.name.split(sname_char)[sname_index]
+    df = pd.read_csv(fname).drop(ignore_cols, axis=1)
+    df["Organism"], df["Isotope"], df["Condition"] = split_samplename(sname, sname_len=len(exp_name))
+
+    return df[df[rt_col] > min_rt].copy()
 
 
 def getfilenames_cppis(cppis_dir, conditions):
@@ -168,28 +199,7 @@ def blank_subtract(blank_df, df, inplace=True):
     return df.drop(drop_me, inplace=inplace)
 
 
-def prep_func(fname, **kwargs):
-    """Drop unnecessary columns and add metadata to func001-like DF
-
-    Args:
-        fname (str or Path): Path to func001-like CSV
-
-    Returns:
-        pd.DataFrame: Pre-processed func001-like DF
-    """
-    # Some defaults with flexibility for kwargs
-    sname_char = kwargs.get("sname_char", "_")
-    sname_index = kwargs.get("sname_index", 1)
-    ignore_cols = kwargs.get("ignore_cols", ['drift','DriftFwhm','QuadMass'])
-
-    fname = Path(fname)
-    sname = fname.name.split(sname_char)[sname_index]
-    df = pd.read_csv(fname).drop(ignore_cols, axis=1)
-    df["Organism"], df["Isotope"], df["Condition"] = split_samplename(sname)
-    return df
-
-
-def split_samplename(s):
+def split_samplename(s, sname_len=8):
     """Take sample name and split into organism, isotope, and condition tuple
 
     Args:
@@ -198,7 +208,9 @@ def split_samplename(s):
     Returns:
         tuple: organism, isotope, condition strings tuple
     """
-    return s[:8], s[8:10], s[10:]
+    i1 = sname_len
+    i2 = sname_len+2
+    return s[:i1], s[i1:i2], s[i2:]
 
 
 def get_func_slice(df, mz, low_scan, high_scan, seen):
@@ -224,8 +236,9 @@ def get_func_slice(df, mz, low_scan, high_scan, seen):
         [idx not in seen for idx in df.index],
     )
     func_slice = df[reduce(np.logical_and, masks)]
-    seen.update(func_slice.index)
-    return func_slice.index
+    indices = list(func_slice.index)
+    seen.update(indices)
+    return indices
 
 
 def calc_exp(g):
@@ -237,10 +250,10 @@ def calc_exp(g):
     Returns:
         tuple: (avgPrecMz, LowScan, HighScan)
     """
-    return round(g.PrecMz.mean(), 4), g['LowScan'].min(), g['LowScan'].max()
+    return round(g.PrecMz.mean(), 4), g['LowScan'].min(), g['HighScan'].max()
 
 
-def isotope_slicer(df, mz, low_scan, high_scan, exp_id, seen):
+def isotope_slicer(df, mz, low_scan, high_scan, seen):
     """Iteratively find all isotope data associated with a given mass.
     Continues until a slice has less than five datapoints.
 
@@ -250,30 +263,83 @@ def isotope_slicer(df, mz, low_scan, high_scan, exp_id, seen):
         low_scan (int): Low scan value in CPPIS
         high_scan (int): High scan value in CPPIS
 
-    Labels DataFrame inplace
+    Returns:
+        dict: indices to mark after processing
     """
-    counter = 0
-    to_mark = {}
+    results = []
     # Find base ion,
-    to_mark[counter] = get_func_slice(df, mz, low_scan, high_scan, seen)
+    results.append(get_func_slice(df, mz, low_scan, high_scan, seen))
 
     # find isotopes +/- C13
     # Initialize while loop
     # Need to look forwards only because CPPIS only contains M0 peaks
     this_mz = mz
     while True:
-        # print(f"Sign = {sign}")
-        counter += 1
         mn = c_isotope(this_mz)
         this_mz = mn
-        # print(f"{exp_id} - {this_mz} - {counter}")
         indices = get_func_slice(df, mn, low_scan, high_scan, seen)
-        to_mark[counter] = indices
+        results.append(indices)
         # print(f"Found {len(indices)} features")
         # Stop condition
         if len(indices) < 5:
             break
 
-    for c, idc in to_mark.items():
-        df.loc[idc, "Isotopomer"] = f"M{c}"
-        df.loc[idc, "Exp_ID"] = exp_id
+    return results
+
+
+def mark_func(df, results):
+    data = df.copy()
+    data['Isotopomer'] = None
+    data['Exp_ID'] = None
+    for e_id, marks in results.items():
+        hits = filter(lambda x: x, marks)
+        for c, idc in enumerate(hits):
+            data.loc[idc, "Isotopomer"] = f"M{c}"
+            data.loc[idc, "Exp_ID"] = e_id
+    return data[-data['Exp_ID'].isna()].copy()
+
+
+def calc_rep_stats(df, exp_id, iso, cond):
+    data = []
+
+    isos = sorted(df.Isotopomer.unique(), key=lambda x: int(x.strip("M")))
+    if df.empty:
+        return data
+    # Calculate the slope data for each replicate
+    for i in range(len(isos)-1):
+        g = df.set_index("FunctionScanIndex")
+        mi = g[g.Isotopomer==isos[i]]
+        mj = g[g.Isotopomer==isos[i+1]]
+        scans = np.intersect1d(mi.index, mj.index)
+        # TODO: logging
+        if len(scans) < 3:
+            continue
+        slope, intercept, _, _, std_err = linregress(
+            mi.loc[scans, 'Intensity'].values, mj.loc[scans, 'Intensity'].values)
+
+        data.append({
+            "Exp_ID": exp_id,
+            "Condition": cond,
+            "Isotope": iso,
+            "Isotopomer": f"{isos[i]}v{isos[i+1]}",
+            "Slope": slope,
+            "Intercept": intercept,
+            "std_err": std_err,
+            "scan_count": len(scans),
+        })
+    return data
+
+def aggregate_results(df):
+    ic = df.groupby(["Exp_ID","Isotope", "Isotopomer"])['Slope'].agg([('mean','mean'),('stdev','std'),('rep_count','count')])
+    return pd.merge(df, ic, left_on=["Exp_ID","Isotope", "Isotopomer"], right_index=True)
+
+
+def get_cppis_masterlist(source_dir):
+    source_dir = Path(source_dir)
+    all_features_csv = source_dir.glob('*_All_features.csv')
+    return pd.read_csv(next(all_features_csv)) # load mz masterlist (1 file)
+
+
+def conf_test(t,p,alpha=0.05):
+    # Simple p-test
+    return p <= alpha

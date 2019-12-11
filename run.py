@@ -1,19 +1,19 @@
 from pathlib import Path
 
-from core import cppis_masterlist, isotope_scraper
+from core import cppis_masterlist, isotope_scraper, isotope_label_detector
 
+# TODO: Need to address RuntimeWarning of invalid Degrees of Freedom in ttest_ind
 
 def main():
     '''User provided arguments'''
     # TODO: Generate CLI for code
 
     # Input directory
-    source_dir = Path("./IsotopedataProcessing/J2").absolute()
+    source_dir = Path("./isotope_experiments_data/SERY").absolute()
 
     # Experiment name or organism name, applies to whole dataset
     # for naming output files
-    exp_name = 'RLUS1353'
-
+    exp_name = 'SERY'
 
     # Experimental conditions
     # primary - positional argument always a list of labels used preferably any 3 letter code per label
@@ -38,8 +38,12 @@ def main():
 
     master = None # for continuing
     master = cppis_masterlist(source_dir, conditions, exp_name)
-    isotope_scraper(source_dir, conditions, master=master)
+    isotope_scraper(source_dir, conditions, exp_name, master=master)
+    isotope_label_detector(source_dir, conditions)
 
 
 if __name__ == "__main__":
-    main()
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        main()

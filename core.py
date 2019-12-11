@@ -4,10 +4,10 @@ from pathlib import Path
 
 import joblib
 import pandas as pd
+from scipy.stats import ttest_ind
 
 import dereplicator
-from utils import (blank_subtract, calc_exp, combine_dfs, getfilenames_cppis,
-                   isotope_slicer, munge_cppis, prep_func)
+import utils
 
 
 def cppis_masterlist(source_dir, conditions, exp_name):
@@ -19,7 +19,7 @@ def cppis_masterlist(source_dir, conditions, exp_name):
     source_dir = Path(source_dir) # Make sure is Path object
     cppis_dir = source_dir.joinpath("CPPIS")
     print(f"Collecting files from {cppis_dir}")
-    cppis_files = getfilenames_cppis(cppis_dir, conditions) # df containing paths, filenames and conditions
+    cppis_files = utils.getfilenames_cppis(cppis_dir, conditions) # df containing paths, filenames and conditions
 
     print(f"Working on BLANKS")
     blank_dir = source_dir.joinpath("BLANKS")
@@ -27,7 +27,7 @@ def cppis_masterlist(source_dir, conditions, exp_name):
     blank_dir.mkdir(parents=True, exist_ok=True)
 
     # peaks in blanks to subtract later
-    blanks = munge_cppis(cppis_files, 'BLANK', blank_dir)
+    blanks = utils.munge_cppis(cppis_files, 'BLANK', blank_dir)
 
     # TODO: Re-do secondary condition preparation and processing
     # if sec_arg == 1:
@@ -50,15 +50,15 @@ def cppis_masterlist(source_dir, conditions, exp_name):
         out_dir = source_dir.joinpath(cond)
         out_dir.mkdir(parents=True, exist_ok=True)
         print(f"Working on {cond}")
-        all_collapsed = munge_cppis(cppis_files, cond, out_dir)
+        all_collapsed = utils.munge_cppis(cppis_files, cond, out_dir)
         return all_collapsed
 
     # Run pre-processing on conditions in separate processes
     prim_dfs = joblib.Parallel(n_jobs=-1)(joblib.delayed(munge_condition)(c) for c in conditions)
 
-    all_primary = combine_dfs(prim_dfs)
+    all_primary = utils.combine_dfs(prim_dfs)
     print("Substracting blanks")
-    blank_subtract(blanks, all_primary) # blank subtraction on full dataset
+    utils.blank_subtract(blanks, all_primary) # blank subtraction on full dataset
     print("Grouping all features")
     all_primary.reset_index(inplace=True, drop=True)
     dereplicator.group_features(all_primary, exp_name, 'Exp_ID') # final grouping - Exp_ID used for func001 munging
@@ -66,16 +66,14 @@ def cppis_masterlist(source_dir, conditions, exp_name):
     return all_primary
 
 
-def isotope_scraper(source_dir, conditions, master=None):
+def isotope_scraper(source_dir, conditions, exp_name, master=None):
     '''This is the final function which will scrape all the isotope data for all ions in the
     '''
     print("Running isotope scraper")
     source_dir = Path(source_dir)
-    # Find All feature CSV without knowing name
     # Enables passing DF instead of loading CSV
     if not isinstance(master, pd.DataFrame):
-        all_features_csv = source_dir.glob('*_All_features.csv')
-        master = pd.read_csv(next(all_features_csv)) # load mz masterlist (1 file)
+        master = utils.get_cppis_masterlist(source_dir)
 
     # TODO: Add flexibility
     func_files = list(source_dir.joinpath('func001').glob("*.csv"))
@@ -84,14 +82,14 @@ def isotope_scraper(source_dir, conditions, master=None):
     out_dir = source_dir.joinpath('All_scan_data')
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    def run_isoslicer(c):
+    def run_isoslicer(cond):
         # add replicate func files for current condition
-        c_funcs = filter(lambda f: c in f.name, func_files)
-        c_dfs = (prep_func(f) for f in c_funcs)
+        c_funcs = filter(lambda f: cond in f.name, func_files)
+        c_dfs = (utils.prep_func(f, exp_name) for f in c_funcs)
 
         # merged data frame of all func001s for the given condition 'c'
-        print(f"Combining files for {c}")
-        func_df = combine_dfs(c_dfs)
+        print(f"Combining files for {cond}")
+        func_df = utils.combine_dfs(c_dfs)
 
         # loops through all unique ions in the master list and iteratively adds
         # Set of seen indices in func_df, updated in isotope_slicer
@@ -100,23 +98,147 @@ def isotope_scraper(source_dir, conditions, master=None):
         seen = set()
         len_uni = len(master.Exp_ID.unique())
         exps = master.groupby("Exp_ID")
-        print(f"There are {len_uni} ions to look at for {c}")
+        print(f"There are {len_uni} ions to look at for {cond}")
 
+        # to_mark = {}
+        # for i, (idx, g) in enumerate(exps):
+        #     if i % 20 == 0 and i > 0:
+        #         print(f"Working on {i}/{len_uni} for {cond}")
+        #     mz, low_scan, high_scan = utils.calc_exp(g)
+        #     #  function 'iso_slicer' slices relevant isotope data for a given mz and all its isotopomers
+        #     #  within given scan range in given func file
+        #     to_mark[idx] = utils.isotope_slicer(func_df, mz, low_scan, high_scan, seen)
+
+        # # Parallelized solution
         def do_slice(i, idx, g):
             nonlocal seen
-            if i % 10 == 0:
-                print(f"Working on {i}/{len_uni} for {c}")
+            if i % 20 == 0 and i > 0:
+                print(f"Working on {i}/{len_uni} for {cond}")
 
-            mz, low_scan, high_scan = calc_exp(g)
+            mz, low_scan, high_scan = utils.calc_exp(g)
             #  function 'iso_slicer' slices relevant isotope data for a given mz and all its isotopomers
             #  within given scan range in given func file
-            isotope_slicer(func_df, mz, low_scan, high_scan, idx, seen)
+            return idx, utils.isotope_slicer(func_df, mz, low_scan, high_scan, seen)
 
         # Will run slicing in multiple threads with shared memory for seen set
-        joblib.Parallel(n_jobs=-1, require='sharedmem')(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
+        to_mark = {k:v for k,v in
+            joblib.Parallel(n_jobs=-1, require='sharedmem')(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
+        }
+
+        res_df = utils.mark_func(func_df, to_mark)
 
         # write iso_scan_data to a file for that condition
-        func_df.to_csv(out_dir.joinpath(f'All_ions_{c}.csv'), index=False)
+        res_df.to_csv(out_dir.joinpath(f'All_ions_{cond}.csv'), index=False)
 
     # Run processing of each condition in separate process
     joblib.Parallel(n_jobs=-1)(joblib.delayed(run_isoslicer)(c) for c in conditions)
+    # [run_isoslicer(c) for c in conditions]
+
+
+def isotope_label_detector(source_dir, conditions):
+    # TODO: REMOVE
+    # warnings.filterwarnings("ignore",category=RuntimeWarning)
+
+    source_dir = Path(source_dir)
+    scan_dir = source_dir.joinpath("All_scan_data")
+    slope_dir = source_dir.joinpath("All_slope_data")
+    slope_dir.mkdir(parents=True, exist_ok=True)
+    out_dir = source_dir.joinpath("All_isotope_analysis")
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    def run_label_analysis(df, cond):
+        print(f"Analyzing labels in {cond}")
+        unique_isotopes = df['Isotope'].unique() # isotopes (U/L, 12/13, 14/15)
+        nat_iso = unique_isotopes.min() # unlabeled 12 or 14
+        label_iso = unique_isotopes.max() # labeled 13 or 15
+
+        exps = df.groupby("Exp_ID")
+        for _, grp in exps:
+            # if only in one isotope condition (U/L), skip
+            # if only one instance of slope calculated, skip
+            if len(grp.Isotope.unique()) < 2 or grp.shape[0] == 1:
+                continue
+            nat_ratio = grp.loc[(grp.Isotope==nat_iso)&(grp.Isotopomer=="M0vM1"), "Slope"]
+            if nat_ratio.shape[0] < 1:
+                continue
+
+            labelled_slc = grp[grp.Isotope==label_iso]
+            for idx in labelled_slc.Isotopomer.unique():
+                labelled_ratio = labelled_slc.loc[labelled_slc.Isotopomer==idx, "Slope"]
+                t, p = ttest_ind(nat_ratio.values, labelled_ratio.values,
+                                 equal_var=False, nan_policy ='omit')
+                labelled = utils.conf_test(t, p, alpha=0.05)
+                indx = labelled_ratio.index.values
+                df.loc[indx, "labelled"] = labelled
+                df.loc[indx, "pval"] = p
+                df.loc[indx, "tstat"] = t
+
+        df.to_csv(out_dir.joinpath(f"iso_analysis_{cond}.csv"), index=False)
+
+    def run_label_detector(cond):
+        out_file = slope_dir.joinpath(f"All_slope_data_{cond}.csv")
+        print(f"Detecting labels in {cond}")
+        fil = scan_dir.joinpath(f"All_ions_{cond}.csv")
+        assert fil.exists()
+        df = pd.read_csv(fil)
+        grouped = df.groupby(["Exp_ID", "Isotope", "Condition"])
+        data = []
+        for (e_id, iso, c), g in grouped:
+            res = utils.calc_rep_stats(g, e_id, iso, c)
+            # print(data)
+            if len(res) < 1:
+                continue
+            data.extend(res)
+        res_df = utils.aggregate_results(pd.DataFrame(data))
+        res_df.to_csv(out_file, index=False)
+        run_label_analysis(res_df, cond)
+
+
+    # Run processing of each condition in separate process
+    joblib.Parallel(n_jobs=-1)(joblib.delayed(run_label_detector)(c) for c in conditions)
+    # [run_label_detector(c) for c in conditions]
+
+
+# def isotope_label_analysis(source_dir, conditions, master=None):
+#     source_dir = Path(source_dir)
+#     slope_dir = source_dir.joinpath("All_slope_data")
+#     out_dir = source_dir.joinpath("All_isotope_analysis")
+#     out_dir.mkdir(parents=True, exist_ok=True)
+
+#     # if not isinstance(master, pd.DataFrame):
+#     #     master = utils.get_cppis_masterlist(source_dir)
+
+#     def run_label_analysis(cond):
+#         print(f"Analyzing labels in {cond}")
+#         df = pd.read_csv(slope_dir.joinpath(f"All_slope_data_{cond}.csv"))
+#         unique_isotopes = df['Isotope'].unique() # isotopes (U/L, 12/13, 14/15)
+#         nat_iso = unique_isotopes.min() # unlabeled 12 or 14
+#         label_iso = unique_isotopes.max() # labeled 13 or 15
+
+#         exps = df.groupby("Exp_ID")
+#         for _, grp in exps:
+#             # if only in one isotope condition (U/L), skip
+#             # if only one instance of slope calculated, skip
+#             if len(grp.Isotope.unique()) < 2 or grp.shape[0] == 1:
+#                 continue
+#             nat_ratio = grp.loc[(grp.Isotope==nat_iso)&(grp.Isotopomer=="M0vM1"), "Slope"]
+#             if nat_ratio.shape[0] < 1:
+#                 continue
+
+#             labelled_slc = grp[grp.Isotope==label_iso]
+#             for idx in labelled_slc.Isotopomer.unique():
+#                 labelled_ratio = labelled_slc.loc[labelled_slc.Isotopomer==idx, "Slope"]
+#                 t, p = ttest_ind(nat_ratio.values, labelled_ratio.values,
+#                                  equal_var=False, nan_policy ='omit')
+#                 labelled = utils.conf_test(t, p, alpha=0.05)
+#                 indx = labelled_ratio.index.values
+#                 df.loc[indx, "labelled"] = labelled
+#                 df.loc[indx, "pval"] = p
+#                 df.loc[indx, "tstat"] = t
+
+#         df.to_csv(out_dir.joinpath(f"iso_analysis_{cond}.csv"), index=False)
+
+
+#     # Run processing of each condition in separate process
+#     joblib.Parallel(n_jobs=-1)(joblib.delayed(run_label_analysis)(c) for c in conditions)
+#     # [run_label_analysis(c) for c in conditions]
