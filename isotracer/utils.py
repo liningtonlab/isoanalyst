@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import linregress
 
-import dereplicator
-import exceptions as exc
+import isotracer.dereplicator as dereplicator
+import isotracer.exceptions as exc
 
 
 """NOTES
@@ -343,3 +343,43 @@ def get_cppis_masterlist(source_dir):
 def conf_test(t,p,alpha=0.05):
     # Simple p-test
     return p <= alpha
+
+
+def get_summary_df(master):
+    temp = master[['Exp_ID', 'RetTime', 'PrecMz']].copy().set_index("Exp_ID")
+    # Sort by ExpID
+    temp['indexNumber'] = [int(i.split('_')[-1]) for i in temp.index]
+    temp.sort_values('indexNumber', ascending=True, inplace=True)
+    temp.drop('indexNumber', axis=1, inplace=True)
+    # Average PrecMz, RetTime
+    data = [
+        {"Exp_ID": idx, 
+        "RetTime": temp.loc[idx, "RetTime"].mean(),
+        "PrecMz": temp.loc[idx, "PrecMz"].mean()}
+        for idx in temp.index.unique()
+    ]
+    return pd.DataFrame(data).set_index("Exp_ID")
+
+
+def condition_stats(data_dir, idxs, cond):
+    res_csv = data_dir.glob(f"*{cond}.csv")
+    df =  pd.read_csv(next(res_csv))
+
+    unlabelled = []
+    label_count = []
+    for idx in idxs:
+        slc = df[df['Exp_ID']==idx]
+        unlabelled.append(12 in slc.Isotope.unique())
+        label_count.append(len(slc[slc.labelled==True].Isotopomer.unique()))
+    return {f"{cond}_unlabelled": unlabelled, f"{cond}_labelled": label_count}
+
+
+def summarize_labels(data_dir, master, conditions):
+    data_dir = Path(data_dir)
+    print("Summarizing data")
+    # New dataframe for data
+    df = get_summary_df(master)
+    idxs = list(df.index)
+    for cond in conditions:
+        df = df.assign(**condition_stats(data_dir, idxs, cond))
+    return df

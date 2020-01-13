@@ -6,8 +6,8 @@ import joblib
 import pandas as pd
 from scipy.stats import ttest_ind
 
-import dereplicator
-import utils
+import isotracer.dereplicator as dereplicator
+import isotracer.utils as utils
 
 
 def cppis_masterlist(source_dir, conditions, exp_name):
@@ -135,16 +135,16 @@ def isotope_scraper(source_dir, conditions, exp_name, master=None):
     # [run_isoslicer(c) for c in conditions]
 
 
-def isotope_label_detector(source_dir, conditions):
-    # TODO: REMOVE
-    # warnings.filterwarnings("ignore",category=RuntimeWarning)
-
+def isotope_label_detector(source_dir, conditions, master=None):
     source_dir = Path(source_dir)
     scan_dir = source_dir.joinpath("All_scan_data")
     slope_dir = source_dir.joinpath("All_slope_data")
     slope_dir.mkdir(parents=True, exist_ok=True)
     out_dir = source_dir.joinpath("All_isotope_analysis")
     out_dir.mkdir(parents=True, exist_ok=True)
+    # Enables passing DF instead of loading CSV
+    if not isinstance(master, pd.DataFrame):
+        master = utils.get_cppis_masterlist(source_dir)
 
     def run_label_analysis(df, cond):
         print(f"Analyzing labels in {cond}")
@@ -195,50 +195,7 @@ def isotope_label_detector(source_dir, conditions):
 
 
     # Run processing of each condition in separate process
-    joblib.Parallel(n_jobs=-1)(joblib.delayed(run_label_detector)(c) for c in conditions)
+    # joblib.Parallel(n_jobs=-1)(joblib.delayed(run_label_detector)(c) for c in conditions)
     # [run_label_detector(c) for c in conditions]
-
-
-# def isotope_label_analysis(source_dir, conditions, master=None):
-#     source_dir = Path(source_dir)
-#     slope_dir = source_dir.joinpath("All_slope_data")
-#     out_dir = source_dir.joinpath("All_isotope_analysis")
-#     out_dir.mkdir(parents=True, exist_ok=True)
-
-#     # if not isinstance(master, pd.DataFrame):
-#     #     master = utils.get_cppis_masterlist(source_dir)
-
-#     def run_label_analysis(cond):
-#         print(f"Analyzing labels in {cond}")
-#         df = pd.read_csv(slope_dir.joinpath(f"All_slope_data_{cond}.csv"))
-#         unique_isotopes = df['Isotope'].unique() # isotopes (U/L, 12/13, 14/15)
-#         nat_iso = unique_isotopes.min() # unlabeled 12 or 14
-#         label_iso = unique_isotopes.max() # labeled 13 or 15
-
-#         exps = df.groupby("Exp_ID")
-#         for _, grp in exps:
-#             # if only in one isotope condition (U/L), skip
-#             # if only one instance of slope calculated, skip
-#             if len(grp.Isotope.unique()) < 2 or grp.shape[0] == 1:
-#                 continue
-#             nat_ratio = grp.loc[(grp.Isotope==nat_iso)&(grp.Isotopomer=="M0vM1"), "Slope"]
-#             if nat_ratio.shape[0] < 1:
-#                 continue
-
-#             labelled_slc = grp[grp.Isotope==label_iso]
-#             for idx in labelled_slc.Isotopomer.unique():
-#                 labelled_ratio = labelled_slc.loc[labelled_slc.Isotopomer==idx, "Slope"]
-#                 t, p = ttest_ind(nat_ratio.values, labelled_ratio.values,
-#                                  equal_var=False, nan_policy ='omit')
-#                 labelled = utils.conf_test(t, p, alpha=0.05)
-#                 indx = labelled_ratio.index.values
-#                 df.loc[indx, "labelled"] = labelled
-#                 df.loc[indx, "pval"] = p
-#                 df.loc[indx, "tstat"] = t
-
-#         df.to_csv(out_dir.joinpath(f"iso_analysis_{cond}.csv"), index=False)
-
-
-#     # Run processing of each condition in separate process
-#     joblib.Parallel(n_jobs=-1)(joblib.delayed(run_label_analysis)(c) for c in conditions)
-#     # [run_label_analysis(c) for c in conditions]
+    sum_df = utils.summarize_labels(out_dir, master, conditions)
+    sum_df.to_csv(source_dir.joinpath("data_summary.csv"))
