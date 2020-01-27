@@ -9,7 +9,7 @@ def main():
     # TODO: Generate CLI for code
 
     # Input directory
-    source_dir = Path("./SERY").absolute()
+    source_dir = Path("SERY").absolute()
 
     # Experiment name or organism name, applies to whole dataset
     # for naming output files
@@ -34,14 +34,13 @@ def main():
                 conditions.append(p+s)
 
     else:
-        # primary = ['ACE','PROP','MET','GLU']
-        primary = ['ACE']
+        primary = ['ACE','PROP','MET','GLU']
         conditions = primary
 
     master = None # for continuing
-    # master = cppis_masterlist(source_dir, conditions, exp_name)
-    isotope_scraper(source_dir, conditions, exp_name, master=master, n_jobs=CORES)
-    # isotope_label_detector(source_dir, conditions, master=master, n_jobs=CORES)
+    master = cppis_masterlist(source_dir, conditions, exp_name)
+    isotope_scraper(source_dir, conditions, exp_name, master=master, n_jobs=CORES, restart=True)
+    isotope_label_detector(source_dir, conditions, master=master, n_jobs=CORES)
 
 
 if __name__ == "__main__":

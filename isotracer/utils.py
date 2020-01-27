@@ -301,19 +301,18 @@ def mark_func(df, results):
     for e_id, marks in results:
         hits = filter(lambda x: x, marks)
         for c, idc in enumerate(hits):
-            idc_filtered = filter(lambda x: x not in seen, idc)
+            idc_filtered = list(filter(lambda x: x not in seen, idc))
             seen.update(idc_filtered)
-            data.extend([{"index": i, "Isotopomer": f"M{c}", "Exp_ID": e_id}
-                for i in idc_filtered]  
+            data.extend({"idx": i, "Isotopomer": f"M{c}", "Exp_ID": e_id}
+                for i in idc_filtered
             )
             # data.loc[idc_filtered, "Isotopomer"] = f"M{c}"
             # data.loc[idc_filtered, "Exp_ID"] = e_id
 
-    ddf = pd.DataFrame(data)
-    ddf.to_csv("temp.csv")
-    df.to_csv("data.csv")
+    ddf = pd.DataFrame(data).set_index("idx")
     # return data[-data['Exp_ID'].isna()].copy()
-    return df
+    df1 = df.join(ddf)
+    return df1[-df1['Exp_ID'].isna()].copy()
 
 
 def calc_rep_stats(df, exp_id, iso, cond):
