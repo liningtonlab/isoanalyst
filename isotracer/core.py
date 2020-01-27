@@ -66,7 +66,7 @@ def cppis_masterlist(source_dir, conditions, exp_name):
     return all_primary
 
 
-def isotope_scraper(source_dir, conditions, exp_name, master=None):
+def isotope_scraper(source_dir, conditions, exp_name, master=None, n_jobs=-1):
     '''This is the final function which will scrape all the isotope data for all ions in the
     '''
     print("Running isotope scraper")
@@ -82,7 +82,12 @@ def isotope_scraper(source_dir, conditions, exp_name, master=None):
     out_dir = source_dir.joinpath('All_scan_data')
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    def run_isoslicer(cond):
+    def run_isoslicer(cond, restart=False):
+        outfile = out_dir.joinpath(f'All_ions_{cond}.csv')
+        if not restart and outfile.exists():
+            print(f"{cond} already processed")
+            return 
+
         # add replicate func files for current condition
         c_funcs = filter(lambda f: cond in f.name, func_files)
         c_dfs = (utils.prep_func(f, exp_name) for f in c_funcs)
@@ -111,31 +116,35 @@ def isotope_scraper(source_dir, conditions, exp_name, master=None):
 
         # # Parallelized solution
         def do_slice(i, idx, g):
-            nonlocal seen
+            # nonlocal seen
             if i % 20 == 0 and i > 0:
                 print(f"Working on {i}/{len_uni} for {cond}")
 
             mz, low_scan, high_scan = utils.calc_exp(g)
             #  function 'iso_slicer' slices relevant isotope data for a given mz and all its isotopomers
             #  within given scan range in given func file
-            return idx, utils.isotope_slicer(func_df, mz, low_scan, high_scan, seen)
+            # return idx, utils.isotope_slicer(func_df, mz, low_scan, high_scan, seen)
+            return idx, utils.isotope_slicer(func_df, mz, low_scan, high_scan)
 
         # Will run slicing in multiple threads with shared memory for seen set
-        to_mark = {k:v for k,v in
-            joblib.Parallel(n_jobs=-1, require='sharedmem')(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
-        }
+        to_mark = [ (k, v) for k,v in
+            # joblib.Parallel(n_jobs=-1, require='sharedmem')(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
+            joblib.Parallel(n_jobs=-1, prefer="threads")(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
+        ]
 
+        print(f"Finished collecting ions for {cond}")
+        print("Preparing output")
         res_df = utils.mark_func(func_df, to_mark)
 
         # write iso_scan_data to a file for that condition
-        res_df.to_csv(out_dir.joinpath(f'All_ions_{cond}.csv'), index=False)
+        res_df.to_csv(outfile)
 
     # Run processing of each condition in separate process
-    joblib.Parallel(n_jobs=-1)(joblib.delayed(run_isoslicer)(c) for c in conditions)
+    joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(run_isoslicer)(c) for c in conditions)
     # [run_isoslicer(c) for c in conditions]
 
 
-def isotope_label_detector(source_dir, conditions, master=None):
+def isotope_label_detector(source_dir, conditions, master=None, n_jobs=-1):
     source_dir = Path(source_dir)
     scan_dir = source_dir.joinpath("All_scan_data")
     slope_dir = source_dir.joinpath("All_slope_data")
@@ -195,7 +204,8 @@ def isotope_label_detector(source_dir, conditions, master=None):
 
 
     # Run processing of each condition in separate process
-    # joblib.Parallel(n_jobs=-1)(joblib.delayed(run_label_detector)(c) for c in conditions)
+    joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(run_label_detector)(c) for c in conditions)
     # [run_label_detector(c) for c in conditions]
     sum_df = utils.summarize_labels(out_dir, master, conditions)
     sum_df.to_csv(source_dir.joinpath("data_summary.csv"))
+

@@ -213,7 +213,8 @@ def split_samplename(s, sname_len=8):
     return s[:i1], s[i1:i2], s[i2:]
 
 
-def get_func_slice(df, mz, low_scan, high_scan, seen):
+# def get_func_slice(df, mz, low_scan, high_scan, seen):
+def get_func_slice(df, mz, low_scan, high_scan):
     """Return the indices of func DF given mz, scan range, and seen list/et
 
     Arguments:
@@ -233,11 +234,11 @@ def get_func_slice(df, mz, low_scan, high_scan, seen):
         df['MZ'] <= mz_tol[1],
         df['FunctionScanIndex'] >= low_scan,
         df['FunctionScanIndex'] <= high_scan,
-        [idx not in seen for idx in df.index],
+        # [idx not in seen for idx in df.index],
     )
     func_slice = df[reduce(np.logical_and, masks)]
     indices = list(func_slice.index)
-    seen.update(indices)
+    # seen.update(indices)
     return indices
 
 
@@ -253,7 +254,8 @@ def calc_exp(g):
     return round(g.PrecMz.mean(), 4), g['LowScan'].min(), g['HighScan'].max()
 
 
-def isotope_slicer(df, mz, low_scan, high_scan, seen):
+# def isotope_slicer(df, mz, low_scan, high_scan, seen):
+def isotope_slicer(df, mz, low_scan, high_scan):
     """Iteratively find all isotope data associated with a given mass.
     Continues until a slice has less than five datapoints.
 
@@ -264,11 +266,12 @@ def isotope_slicer(df, mz, low_scan, high_scan, seen):
         high_scan (int): High scan value in CPPIS
 
     Returns:
-        dict: indices to mark after processing
+        list: indices to mark after processing
     """
     results = []
     # Find base ion,
-    results.append(get_func_slice(df, mz, low_scan, high_scan, seen))
+    # results.append(get_func_slice(df, mz, low_scan, high_scan, seen))
+    results.append(get_func_slice(df, mz, low_scan, high_scan))
 
     # find isotopes +/- C13
     # Initialize while loop
@@ -277,7 +280,8 @@ def isotope_slicer(df, mz, low_scan, high_scan, seen):
     while True:
         mn = c_isotope(this_mz)
         this_mz = mn
-        indices = get_func_slice(df, mn, low_scan, high_scan, seen)
+        # indices = get_func_slice(df, mn, low_scan, high_scan, seen)
+        indices = get_func_slice(df, mn, low_scan, high_scan)
         results.append(indices)
         # print(f"Found {len(indices)} features")
         # Stop condition
@@ -288,15 +292,28 @@ def isotope_slicer(df, mz, low_scan, high_scan, seen):
 
 
 def mark_func(df, results):
-    data = df.copy()
-    data['Isotopomer'] = None
-    data['Exp_ID'] = None
-    for e_id, marks in results.items():
+    # data = df.copy()
+    data = []
+    seen = set()
+    # for e_id, marks in results.items():
+    # results as a list of tuples
+    # each of marks is a list of indices
+    for e_id, marks in results:
         hits = filter(lambda x: x, marks)
         for c, idc in enumerate(hits):
-            data.loc[idc, "Isotopomer"] = f"M{c}"
-            data.loc[idc, "Exp_ID"] = e_id
-    return data[-data['Exp_ID'].isna()].copy()
+            idc_filtered = filter(lambda x: x not in seen, idc)
+            seen.update(idc_filtered)
+            data.extend([{"index": i, "Isotopomer": f"M{c}", "Exp_ID": e_id}
+                for i in idc_filtered]  
+            )
+            # data.loc[idc_filtered, "Isotopomer"] = f"M{c}"
+            # data.loc[idc_filtered, "Exp_ID"] = e_id
+
+    ddf = pd.DataFrame(data)
+    ddf.to_csv("temp.csv")
+    df.to_csv("data.csv")
+    # return data[-data['Exp_ID'].isna()].copy()
+    return df
 
 
 def calc_rep_stats(df, exp_id, iso, cond):
@@ -307,7 +324,7 @@ def calc_rep_stats(df, exp_id, iso, cond):
         return data
     # Calculate the slope data for each replicate
     for i in range(len(isos)-1):
-        g = df.set_index("FunctionScanIndex")
+        g = df.drop_duplicates(["FunctionScanIndex", "Isotopomer"]).set_index("FunctionScanIndex")
         mi = g[g.Isotopomer==isos[i]]
         mj = g[g.Isotopomer==isos[i+1]]
         scans = np.intersect1d(mi.index, mj.index)
