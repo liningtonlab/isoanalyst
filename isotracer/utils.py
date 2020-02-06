@@ -12,21 +12,6 @@ import isotracer.dereplicator as dereplicator
 import isotracer.exceptions as exc
 
 
-"""NOTES
-See:
-https://pandas.pydata.org/pandas-docs/stable/getting_started/basics.html#iteration
-
-1) pandas `.ix` indexer is deprecated and will be removed soon
-2) Iterating through DataFrames is "slow" -> vectorize with df.COL.apply
-3) If need to iterate through df, use df.itertuples(). This returns a namedtuple
-   so you can access attributes using row.COL and the index with row.Index
-4) I like to use pathlib Path for OS operations
-
-Extra speedup?
-https://pandas.pydata.org/pandas-docs/stable/user_guide/enhancingperf.html#cython-writing-c-extensions-for-pandas
-"""
-
-
 def ppm_tolerance(mass, error=10):
     """Determine high,low error range for a given mass
     Range of (mass-10ppm, mass+10ppm)
@@ -55,6 +40,21 @@ def c_isotope(mass, sign=1):
         float: Mass plus mass difference from 12C to 13C
     """
     return mass + sign*1.00335
+
+
+def n_isotope(mass, sign=1):
+    """Add mass difference from 14N to 15N to mass
+    14N = 14.003074
+    15N = 15.000109
+
+    Args:
+        mass (float): Mass to calculate against
+        sign (int): Optional: Plus or minus 1. Default=1
+
+    Returns:
+        float: Mass plus mass difference from 14N to 15N
+    """
+    return mass + sign*0.9970349
 
 
 def combine_dfs(dfs):
@@ -255,7 +255,7 @@ def calc_exp(g):
 
 
 # def isotope_slicer(df, mz, low_scan, high_scan, seen):
-def isotope_slicer(df, mz, low_scan, high_scan):
+def isotope_slicer(df, mz, low_scan, high_scan, iso="C13"):
     """Iteratively find all isotope data associated with a given mass.
     Continues until a slice has less than five datapoints.
 
@@ -276,9 +276,14 @@ def isotope_slicer(df, mz, low_scan, high_scan):
     # find isotopes +/- C13
     # Initialize while loop
     # Need to look forwards only because CPPIS only contains M0 peaks
+    if iso == "N15":
+        iso_func = n_isotope
+    else:
+        iso_func = c_isotope
+
     this_mz = mz
     while True:
-        mn = c_isotope(this_mz)
+        mn = iso_func(this_mz)
         this_mz = mn
         # indices = get_func_slice(df, mn, low_scan, high_scan, seen)
         indices = get_func_slice(df, mn, low_scan, high_scan)
@@ -385,7 +390,7 @@ def condition_stats(data_dir, idxs, cond):
     label_count = []
     for idx in idxs:
         slc = df[df['Exp_ID']==idx]
-        unlabelled.append(12 in slc.Isotope.unique())
+        unlabelled.append(any(x in slc.Isotope.unique() for x in (12, 14)))
         label_count.append(len(slc[slc.labelled==True].Isotopomer.unique()))
     return {f"{cond}_unlabelled": unlabelled, f"{cond}_labelled": label_count}
 

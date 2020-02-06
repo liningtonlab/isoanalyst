@@ -12,7 +12,7 @@ CONFIG = {
         "RetTime": ("window", 0.03),
         "PrecZ": (None, None),
     },
-    "MinReps": 3,
+    "MinReps": 1,
 }
 
 def replicate_compare(df, config=CONFIG):
