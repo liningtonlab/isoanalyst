@@ -1,8 +1,11 @@
+import copy
 import argparse
 import logging
 from pathlib import Path
 
 import isotracer.core as core
+from isotracer.dereplicator import CONFIG
+
 
 def run_validate(args):
     print("Running validation...")
@@ -24,6 +27,7 @@ def run_prep(args):
         conditions=args.conditions,
         exp_name=args.name,
         n_jobs=args.jobs,
+        config=args.config,
     )
 
 def run_scrape(args):
@@ -34,6 +38,7 @@ def run_scrape(args):
         exp_name=args.name,
         n_jobs=args.jobs,
         restart=-args.retry,
+        config=args.config,
     )
 
 def run_analyze(args):
@@ -41,6 +46,7 @@ def run_analyze(args):
     core.isotope_label_detector(
         source_dir=args.source_dir,
         conditions=args.conditions,
+        exp_name=args.name,
         n_jobs=args.jobs,
     )
 
@@ -79,8 +85,8 @@ parser.add_argument(
 parser.add_argument(
     "-n",
     "--name",
-    help="Experiment name",
-    default="IsoTracer",
+    help="Experiment name (Defaults to source_dir name)",
+    default=None,
 )
 
 parser.add_argument(
@@ -101,13 +107,69 @@ parser.add_argument(
 parser.add_argument(
     "--retry",
     action="store_true",
+    help="ONLY FOR SCRAPE STEP: resume instead of restarting"
+)
+
+parser.add_argument(
+    "--print_config",
+    action="store_true",
+    help="Print the configuration and exit program",
+)
+
+parser.add_argument(
+    "--colstomatch",
+    nargs="+",
+    help="Column names to match in dereplication",
+)
+
+parser.add_argument(
+    "--mztol",
+    type=float,
+    help="PrecMz tolerance in PPM"
+)
+
+parser.add_argument(
+    "--rttol",
+    type=float,
+    help="RetTime tolerance in min"
+)
+
+parser.add_argument(
+    "--minreps",
+    type=int,
+    help="Minium reps to consider in replication comparison"
 )
 
 
 def main():
     args = parser.parse_args()
+    # Parse extra config options
+    args.config = copy.deepcopy(CONFIG)
+    if args.colstomatch:
+        assert len(args.colstomatch) > 1
+        args.config['ColsToMatch'] = args.colstomatch
+    if args.mztol:
+        assert args.mztol > 0
+        args.config['Tolerances']['PrecMz'][1] = args.mztol
+    if args.rttol:
+        assert args.rttol > 0
+        args.config['Tolerances']['RetTime'][1] = args.rttol
+    if args.minreps:
+        assert args.minreps > 0
+        args.config['MinReps'] = args.minreps
+    if args.print_config:
+        print(args.config)
+        return 0
+    # Default to the name of the source_dir
+    if not args.name:
+        args.name = args.source_dir.name
+    # Append secondary named to primary 
+    if args.secondary:
+        args.conditions = [f"{c}{s}" for c in args.conditions for s in args.secondary]
+        # print("Detected secondary conditions")
+        # print(args.conditions)
     if args.retry and not args.step == "scrape":
-        logging.warn("'--retry' flag has no effect")
+        logging.warning("'--retry' flag has no effect")
     if args.step == "validate":
         run_validate(args)
     if args.step == "prep":

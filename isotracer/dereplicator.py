@@ -8,14 +8,14 @@ import rtree
 CONFIG = {
     "ColsToMatch": ["RetTime", "PrecMz", "PrecZ"],
     "Tolerances": {
-        "PrecMz": ("ppm", 10),
-        "RetTime": ("window", 0.03),
-        "PrecZ": (None, None),
+        "PrecMz": ["ppm", 10],
+        "RetTime": ["window", 0.03],
+        "PrecZ": [None, None],
     },
-    "MinReps": 1,
+    "MinReps": 2,
 }
 
-def replicate_compare(df, config=CONFIG):
+def replicate_compare(df, config=None):
     """Take dataframe and perform Rtree comparison to replicate
 
     Args:
@@ -24,6 +24,8 @@ def replicate_compare(df, config=CONFIG):
     Returns:
         pd.DataFrame: New dataframe with averaged data
     """
+    if not config:
+        config = CONFIG
     gen_error_cols(df, config)
     rects = get_rects(df, config)
     rtree = build_rtree(rects, config)
@@ -38,7 +40,7 @@ def replicate_compare(df, config=CONFIG):
     return pd.DataFrame(new_data).round(4)
 
 
-def group_features(df, cname, new, config=CONFIG):
+def group_features(df, cname, new, config=None):
     """Take dataframe and perform Rtree comparison to replicate,
         marking features into groups
 
@@ -47,6 +49,8 @@ def group_features(df, cname, new, config=CONFIG):
         c (str): group # assignment typically based on experimental condition.
         new (str): Name for grouping column
     """
+    if not config:
+        config = CONFIG
     r_df = df.copy()
     gen_error_cols(r_df, config)
     rects = get_rects(r_df, config)
@@ -167,7 +171,7 @@ def collapse_data_rows(df: pd.DataFrame, datacols: list, calc_bin_info: bool=Fal
     return data
 
 
-def find_overlap(df1, df2, config=CONFIG):
+def find_overlap(df1, df2, config=None):
     """Find overlap of df1 in df2 and return set of iloc indices from df1
 
     Args:
@@ -178,6 +182,8 @@ def find_overlap(df1, df2, config=CONFIG):
     Returns:
         set: Set of iloc indices of df1
     """
+    if not config:
+        config = CONFIG
     # Make temp copies of dataframes
     query = df1.copy()
     ref = df2.copy()

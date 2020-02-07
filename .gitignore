@@ -1,4 +1,5 @@
 # Personalized
+.snakemake/
 .vscode/
 IsotopeDataProcessing/
 isotope_experiments_data/
