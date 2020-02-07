@@ -1,0 +1,30 @@
+CONDITIONS = ["ACE", "MET", "GLU", "PROP"]
+SECONDARY = ["D0", "D3"]
+INPUT = "SERY/"
+
+
+rule all:
+  input: "analyze.done"
+
+rule validate:
+  output: touch("validate.done")
+  shell:
+    "isotracer validate {INPUT} {CONDITIONS} -s {SECONDARY} "
+
+rule prep:
+  input: "validate.done"
+  output: touch("prep.done")
+  shell:
+    "isotracer prep {INPUT} {CONDITIONS} -s {SECONDARY} "
+
+rule scrape:
+  input: "prep.done"
+  output: touch("scrape.done")
+  shell:
+    "isotracer scrape {INPUT} {CONDITIONS} -s {SECONDARY} "
+
+rule analyze:
+  input: "scrape.done"
+  output: touch("analyze.done")
+  shell:
+    "isotracer analyze {INPUT} {CONDITIONS} -s {SECONDARY} "

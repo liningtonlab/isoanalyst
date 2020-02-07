@@ -12,21 +12,6 @@ import isotracer.dereplicator as dereplicator
 import isotracer.exceptions as exc
 
 
-"""NOTES
-See:
-https://pandas.pydata.org/pandas-docs/stable/getting_started/basics.html#iteration
-
-1) pandas `.ix` indexer is deprecated and will be removed soon
-2) Iterating through DataFrames is "slow" -> vectorize with df.COL.apply
-3) If need to iterate through df, use df.itertuples(). This returns a namedtuple
-   so you can access attributes using row.COL and the index with row.Index
-4) I like to use pathlib Path for OS operations
-
-Extra speedup?
-https://pandas.pydata.org/pandas-docs/stable/user_guide/enhancingperf.html#cython-writing-c-extensions-for-pandas
-"""
-
-
 def ppm_tolerance(mass, error=10):
     """Determine high,low error range for a given mass
     Range of (mass-10ppm, mass+10ppm)
@@ -55,6 +40,21 @@ def c_isotope(mass, sign=1):
         float: Mass plus mass difference from 12C to 13C
     """
     return mass + sign*1.00335
+
+
+def n_isotope(mass, sign=1):
+    """Add mass difference from 14N to 15N to mass
+    14N = 14.003074
+    15N = 15.000109
+
+    Args:
+        mass (float): Mass to calculate against
+        sign (int): Optional: Plus or minus 1. Default=1
+
+    Returns:
+        float: Mass plus mass difference from 14N to 15N
+    """
+    return mass + sign*0.9970349
 
 
 def combine_dfs(dfs):
@@ -155,7 +155,7 @@ def getfilenames_cppis(cppis_dir, conditions):
     return files
 
 
-def munge_cppis(files, cond, out_dir):
+def munge_cppis(files, cond, out_dir, config=None):
     """Pre-process data for specific condition before detecting isotope labelling
 
     Args:
@@ -177,13 +177,13 @@ def munge_cppis(files, cond, out_dir):
 
     # R-tree based replicate comparison
     print("Performing replicate comparison")
-    averaged = dereplicator.replicate_compare(df)
+    averaged = dereplicator.replicate_compare(df, config=config)
     averaged.to_csv(out_dir.joinpath('All_ions_averaged.csv'), index=False)
 
     return averaged
 
 
-def blank_subtract(blank_df, df, inplace=True):
+def blank_subtract(blank_df, df, inplace=True, config=None):
     """Given a DF of blank data and another DF, remove blanks from DF
 
     Args:
@@ -194,7 +194,7 @@ def blank_subtract(blank_df, df, inplace=True):
     # Make sure indices are sequential integers 0,1,2,etc...
     df.reset_index(inplace=True, drop=True)
     # Keep a set of IDs to drop
-    drop_me = dereplicator.find_overlap(df, blank_df)
+    drop_me = dereplicator.find_overlap(df, blank_df, config=config)
     # Will return None if inplace=True, else return DataFrame
     return df.drop(drop_me, inplace=inplace)
 
@@ -213,7 +213,7 @@ def split_samplename(s, sname_len=8):
     return s[:i1], s[i1:i2], s[i2:]
 
 
-def get_func_slice(df, mz, low_scan, high_scan, seen):
+def get_func_slice(df, mz, low_scan, high_scan, mz_tol=10):
     """Return the indices of func DF given mz, scan range, and seen list/et
 
     Arguments:
@@ -221,23 +221,22 @@ def get_func_slice(df, mz, low_scan, high_scan, seen):
         mz (float): Mass to query
         low_scan (int): LowScan
         high_scan (int): HighScan
-        seen (set): Set of seen indices to ignore
 
     Returns:
         iterable: List-like of indices in func001-like DF
     """
     # print(len(seen))
-    mz_tol = ppm_tolerance(mz)
+    mz_tol = ppm_tolerance(mz, error=mz_tol)
     masks = (
         df['MZ'] >= mz_tol[0],
         df['MZ'] <= mz_tol[1],
         df['FunctionScanIndex'] >= low_scan,
         df['FunctionScanIndex'] <= high_scan,
-        [idx not in seen for idx in df.index],
+        # [idx not in seen for idx in df.index],
     )
     func_slice = df[reduce(np.logical_and, masks)]
     indices = list(func_slice.index)
-    seen.update(indices)
+    # seen.update(indices)
     return indices
 
 
@@ -253,7 +252,7 @@ def calc_exp(g):
     return round(g.PrecMz.mean(), 4), g['LowScan'].min(), g['HighScan'].max()
 
 
-def isotope_slicer(df, mz, low_scan, high_scan, seen):
+def isotope_slicer(df, mz, low_scan, high_scan, iso="C13", mz_tol=10):
     """Iteratively find all isotope data associated with a given mass.
     Continues until a slice has less than five datapoints.
 
@@ -264,20 +263,26 @@ def isotope_slicer(df, mz, low_scan, high_scan, seen):
         high_scan (int): High scan value in CPPIS
 
     Returns:
-        dict: indices to mark after processing
+        list: indices to mark after processing
     """
     results = []
     # Find base ion,
-    results.append(get_func_slice(df, mz, low_scan, high_scan, seen))
+    # results.append(get_func_slice(df, mz, low_scan, high_scan, seen))
+    results.append(get_func_slice(df, mz, low_scan, high_scan))
 
     # find isotopes +/- C13
     # Initialize while loop
     # Need to look forwards only because CPPIS only contains M0 peaks
+    if iso == "N15":
+        iso_func = n_isotope
+    else:
+        iso_func = c_isotope
+
     this_mz = mz
     while True:
-        mn = c_isotope(this_mz)
+        mn = iso_func(this_mz)
         this_mz = mn
-        indices = get_func_slice(df, mn, low_scan, high_scan, seen)
+        indices = get_func_slice(df, mn, low_scan, high_scan, mz_tol=10)
         results.append(indices)
         # print(f"Found {len(indices)} features")
         # Stop condition
@@ -288,15 +293,27 @@ def isotope_slicer(df, mz, low_scan, high_scan, seen):
 
 
 def mark_func(df, results):
-    data = df.copy()
-    data['Isotopomer'] = None
-    data['Exp_ID'] = None
-    for e_id, marks in results.items():
+    # data = df.copy()
+    data = []
+    seen = set()
+    # for e_id, marks in results.items():
+    # results as a list of tuples
+    # each of marks is a list of indices
+    for e_id, marks in results:
         hits = filter(lambda x: x, marks)
         for c, idc in enumerate(hits):
-            data.loc[idc, "Isotopomer"] = f"M{c}"
-            data.loc[idc, "Exp_ID"] = e_id
-    return data[-data['Exp_ID'].isna()].copy()
+            idc_filtered = list(filter(lambda x: x not in seen, idc))
+            seen.update(idc_filtered)
+            data.extend({"idx": i, "Isotopomer": f"M{c}", "Exp_ID": e_id}
+                for i in idc_filtered
+            )
+            # data.loc[idc_filtered, "Isotopomer"] = f"M{c}"
+            # data.loc[idc_filtered, "Exp_ID"] = e_id
+
+    ddf = pd.DataFrame(data).set_index("idx")
+    # return data[-data['Exp_ID'].isna()].copy()
+    df1 = df.join(ddf)
+    return df1[-df1['Exp_ID'].isna()].copy()
 
 
 def calc_rep_stats(df, exp_id, iso, cond):
@@ -307,7 +324,7 @@ def calc_rep_stats(df, exp_id, iso, cond):
         return data
     # Calculate the slope data for each replicate
     for i in range(len(isos)-1):
-        g = df.set_index("FunctionScanIndex")
+        g = df.drop_duplicates(["FunctionScanIndex", "Isotopomer"]).set_index("FunctionScanIndex")
         mi = g[g.Isotopomer==isos[i]]
         mj = g[g.Isotopomer==isos[i+1]]
         scans = np.intersect1d(mi.index, mj.index)
@@ -369,7 +386,7 @@ def condition_stats(data_dir, idxs, cond):
     label_count = []
     for idx in idxs:
         slc = df[df['Exp_ID']==idx]
-        unlabelled.append(12 in slc.Isotope.unique())
+        unlabelled.append(any(x in slc.Isotope.unique() for x in (12, 14)))
         label_count.append(len(slc[slc.labelled==True].Isotopomer.unique()))
     return {f"{cond}_unlabelled": unlabelled, f"{cond}_labelled": label_count}
 
@@ -383,3 +400,8 @@ def summarize_labels(data_dir, master, conditions):
     for cond in conditions:
         df = df.assign(**condition_stats(data_dir, idxs, cond))
     return df
+
+
+def get_mz_tol(config):
+    return config.get("Tolerances", {}).get("PrecMz", ("ppm", 10))[1] 
+

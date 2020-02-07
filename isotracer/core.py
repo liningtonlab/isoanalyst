@@ -10,7 +10,28 @@ import isotracer.dereplicator as dereplicator
 import isotracer.utils as utils
 
 
-def cppis_masterlist(source_dir, conditions, exp_name):
+def validate_input(source_dir, conditions):
+    """Make sure required input directories exist
+
+    Args:
+        source_dir (str or Path): input directory
+    """
+    source_dir = Path(source_dir)
+    assert source_dir.is_dir()
+    cppis_dir = source_dir.joinpath("CPPIS")
+    assert cppis_dir.is_dir()
+    func_dir = source_dir.joinpath("func001")
+    assert func_dir.is_dir()
+    print("Validation successful!")
+
+
+def cppis_masterlist(
+        source_dir, 
+        conditions, 
+        exp_name, 
+        n_jobs=-1,
+        config=None,
+    ):
     """
     From a directory takes a folder named 'CPPIS' and munges all the cppis.csv files first by conditions
     and then combines all files to create an mz masterlist of all features detected in experiment and basketed
@@ -27,34 +48,17 @@ def cppis_masterlist(source_dir, conditions, exp_name):
     blank_dir.mkdir(parents=True, exist_ok=True)
 
     # peaks in blanks to subtract later
-    blanks = utils.munge_cppis(cppis_files, 'BLANK', blank_dir)
+    blanks = utils.munge_cppis(cppis_files, 'BLANK', blank_dir, config=config)
 
-    # TODO: Re-do secondary condition preparation and processing
-    # if sec_arg == 1:
-    #     for p in primary:
-    #         sec_dfs = [] #dfs to combine for each primary condition
-    #         for s in secondary:
-    #             cond = p+s
-    #             out_dir = source_dir.joinpath(p, s) # create directory
-    #             out_dir.mkdir(parents=True, exist_ok=True)
-
-    #             all_collapsed = munge_cppis(cppis_files, cond, out_dir) #write files
-    #             sec_dfs.append(all_collapsed) # add df to list to combine with other sec conds
-    #         all_secondary = combine_dfs(sec_dfs)
-    #         grouped_secondary = group_cppis(all_secondary, p, 'group_ID') # grouping all features for primary condition
-    #         grouped_secondary.to_csv(source_dir.joinpath(p, f'{p}_All_ions.csv', index=False))
-    #         prim_dfs.append(grouped_secondary) #add df to list to combine with other primary conds
-
-    # else:
     def munge_condition(cond):
         out_dir = source_dir.joinpath(cond)
         out_dir.mkdir(parents=True, exist_ok=True)
         print(f"Working on {cond}")
-        all_collapsed = utils.munge_cppis(cppis_files, cond, out_dir)
+        all_collapsed = utils.munge_cppis(cppis_files, cond, out_dir, config=config)
         return all_collapsed
 
     # Run pre-processing on conditions in separate processes
-    prim_dfs = joblib.Parallel(n_jobs=-1)(joblib.delayed(munge_condition)(c) for c in conditions)
+    prim_dfs = joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(munge_condition)(c) for c in conditions)
 
     all_primary = utils.combine_dfs(prim_dfs)
     print("Substracting blanks")
@@ -66,9 +70,11 @@ def cppis_masterlist(source_dir, conditions, exp_name):
     return all_primary
 
 
-def isotope_scraper(source_dir, conditions, exp_name, master=None):
+def isotope_scraper(source_dir, conditions, exp_name, master=None, n_jobs=-1, restart=False, config=None):
     '''This is the final function which will scrape all the isotope data for all ions in the
     '''
+    if not config:
+        config = dereplicator.CONFIG
     print("Running isotope scraper")
     source_dir = Path(source_dir)
     # Enables passing DF instead of loading CSV
@@ -82,7 +88,12 @@ def isotope_scraper(source_dir, conditions, exp_name, master=None):
     out_dir = source_dir.joinpath('All_scan_data')
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    def run_isoslicer(cond):
+    def run_isoslicer(cond, restart=restart):
+        outfile = out_dir.joinpath(f'All_ions_{cond}.csv')
+        if not restart and outfile.exists():
+            print(f"{cond} already processed")
+            return 
+
         # add replicate func files for current condition
         c_funcs = filter(lambda f: cond in f.name, func_files)
         c_dfs = (utils.prep_func(f, exp_name) for f in c_funcs)
@@ -93,49 +104,38 @@ def isotope_scraper(source_dir, conditions, exp_name, master=None):
 
         # loops through all unique ions in the master list and iteratively adds
         # Set of seen indices in func_df, updated in isotope_slicer
-        func_df['Isotopomer'] = None
-        func_df['Exp_ID'] = None
-        seen = set()
+        # disable N15 searching and use wider tolerance
+        # iso = "15N" if cond in ("GLU", "GLN") else "13C"
+
         len_uni = len(master.Exp_ID.unique())
         exps = master.groupby("Exp_ID")
         print(f"There are {len_uni} ions to look at for {cond}")
 
-        # to_mark = {}
-        # for i, (idx, g) in enumerate(exps):
-        #     if i % 20 == 0 and i > 0:
-        #         print(f"Working on {i}/{len_uni} for {cond}")
-        #     mz, low_scan, high_scan = utils.calc_exp(g)
-        #     #  function 'iso_slicer' slices relevant isotope data for a given mz and all its isotopomers
-        #     #  within given scan range in given func file
-        #     to_mark[idx] = utils.isotope_slicer(func_df, mz, low_scan, high_scan, seen)
-
-        # # Parallelized solution
+        # Parallelized solution
         def do_slice(i, idx, g):
-            nonlocal seen
+            # nonlocal seen
             if i % 20 == 0 and i > 0:
                 print(f"Working on {i}/{len_uni} for {cond}")
 
             mz, low_scan, high_scan = utils.calc_exp(g)
             #  function 'iso_slicer' slices relevant isotope data for a given mz and all its isotopomers
             #  within given scan range in given func file
-            return idx, utils.isotope_slicer(func_df, mz, low_scan, high_scan, seen)
+            return idx, utils.isotope_slicer(func_df, mz, low_scan, high_scan, iso="14C", mz_tol=utils.get_mz_tol(config))
 
-        # Will run slicing in multiple threads with shared memory for seen set
-        to_mark = {k:v for k,v in
-            joblib.Parallel(n_jobs=-1, require='sharedmem')(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
-        }
+        to_mark = joblib.Parallel(n_jobs=-1, prefer="threads")(joblib.delayed(do_slice)(i, idx, g) for i, (idx, g) in enumerate(exps))
 
+        print(f"Finished collecting ions for {cond}")
         res_df = utils.mark_func(func_df, to_mark)
 
         # write iso_scan_data to a file for that condition
-        res_df.to_csv(out_dir.joinpath(f'All_ions_{cond}.csv'), index=False)
+        res_df.to_csv(outfile)
 
     # Run processing of each condition in separate process
-    joblib.Parallel(n_jobs=-1)(joblib.delayed(run_isoslicer)(c) for c in conditions)
+    joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(run_isoslicer)(c) for c in conditions)
     # [run_isoslicer(c) for c in conditions]
 
 
-def isotope_label_detector(source_dir, conditions, master=None):
+def isotope_label_detector(source_dir, conditions, exp_name, master=None, n_jobs=-1):
     source_dir = Path(source_dir)
     scan_dir = source_dir.joinpath("All_scan_data")
     slope_dir = source_dir.joinpath("All_slope_data")
@@ -166,7 +166,7 @@ def isotope_label_detector(source_dir, conditions, master=None):
             for idx in labelled_slc.Isotopomer.unique():
                 labelled_ratio = labelled_slc.loc[labelled_slc.Isotopomer==idx, "Slope"]
                 t, p = ttest_ind(nat_ratio.values, labelled_ratio.values,
-                                 equal_var=False, nan_policy ='omit')
+                                 equal_var=False, nan_policy='omit')
                 labelled = utils.conf_test(t, p, alpha=0.05)
                 indx = labelled_ratio.index.values
                 df.loc[indx, "labelled"] = labelled
@@ -195,7 +195,8 @@ def isotope_label_detector(source_dir, conditions, master=None):
 
 
     # Run processing of each condition in separate process
-    # joblib.Parallel(n_jobs=-1)(joblib.delayed(run_label_detector)(c) for c in conditions)
+    joblib.Parallel(n_jobs=n_jobs)(joblib.delayed(run_label_detector)(c) for c in conditions)
     # [run_label_detector(c) for c in conditions]
     sum_df = utils.summarize_labels(out_dir, master, conditions)
-    sum_df.to_csv(source_dir.joinpath("data_summary.csv"))
+    sum_df.to_csv(source_dir.joinpath(f"{exp_name}_data_summary.csv"))
+
