@@ -1,7 +1,14 @@
+# Type `isotracer --help` for all CLI options
+# default rt window = 0.03 min
+# default precmz ppm = 10 ppm
+# configurable with --rttol and --mztol, respectively
 CONDITIONS = ["ACE", "MET", "GLU", "PROP"]
 SECONDARY = ["D0", "D3"]
 INPUT = "SERY/"
-
+NAME = "SERY"
+TOL = 10
+MINSCAN = 1
+MINCOND = 1
 
 rule all:
   input: "analyze.done"
@@ -9,22 +16,27 @@ rule all:
 rule validate:
   output: touch("validate.done")
   shell:
-    "isotracer validate {INPUT} {CONDITIONS} -s {SECONDARY} "
+    "isotracer validate {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME}"
 
+# default minreps = 3
 rule prep:
   input: "validate.done"
   output: touch("prep.done")
   shell:
-    "isotracer prep {INPUT} {CONDITIONS} -s {SECONDARY} "
+    "isotracer prep {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --mztol {TOL}"
 
+# default minreps = 3
+# `--retry` by default because assuming changes to config
+# Remove this flag if you want to try continuing analysis
 rule scrape:
   input: "prep.done"
   output: touch("scrape.done")
   shell:
-    "isotracer scrape {INPUT} {CONDITIONS} -s {SECONDARY} "
+    "isotracer scrape {INPUT} {CONDITIONS} -s {SECONDARY} --retry -n {NAME} --mztol {TOL} --minscans {MINSCAN}"
 
+# default minconditions = 1
 rule analyze:
   input: "scrape.done"
   output: touch("analyze.done")
   shell:
-    "isotracer analyze {INPUT} {CONDITIONS} -s {SECONDARY} "
+    "isotracer analyze {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --minconditions {MINCOND}"

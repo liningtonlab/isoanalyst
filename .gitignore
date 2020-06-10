@@ -4,6 +4,7 @@
 IsotopeDataProcessing/
 isotope_experiments_data/
 .DS_Store
+*.done
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -109,3 +110,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+pkgs/
+
+SERY/

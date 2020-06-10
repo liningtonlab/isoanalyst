@@ -4,7 +4,7 @@ import logging
 from pathlib import Path
 
 import isotracer.core as core
-from isotracer.dereplicator import CONFIG
+from isotracer.config import CONFIG
 
 
 def run_validate(args):
@@ -13,12 +13,15 @@ def run_validate(args):
         core.validate_input(args.source_dir, args.conditions)
     except AssertionError:
         print(f"source_dir: {args.source_dir} does not have the required structure")
-        print("""
+        print(
+            """
 Please ensure directory format matches: \033[93m
-    source_dir 
-    ├── CPPIS 
+    source_dir
+    ├── CPPIS
     └── func001
-    \033[0m """)
+    \033[0m """
+        )
+
 
 def run_prep(args):
     print("Running prep...")
@@ -30,6 +33,7 @@ def run_prep(args):
         config=args.config,
     )
 
+
 def run_scrape(args):
     print("Running scrape...")
     core.isotope_scraper(
@@ -38,8 +42,10 @@ def run_scrape(args):
         exp_name=args.name,
         n_jobs=args.jobs,
         restart=-args.retry,
+        min_scans=args.minscans,
         config=args.config,
     )
+
 
 def run_analyze(args):
     print("Running analyze...")
@@ -47,46 +53,41 @@ def run_analyze(args):
         source_dir=args.source_dir,
         conditions=args.conditions,
         exp_name=args.name,
+        num_cond=args.minconditions,
         n_jobs=args.jobs,
     )
+
 
 # Define Parser and Options
 # Main parser
 parser = argparse.ArgumentParser(
-    prog = "IsoTracer",
-    description = "Analyze MS data for isotopic labelling experiments.",
-    formatter_class=argparse.RawTextHelpFormatter
+    prog="IsoTracer",
+    description="Analyze MS data for isotopic labelling experiments.",
+    formatter_class=argparse.RawTextHelpFormatter,
 )
 
 parser.add_argument(
     "step",
     help="""Processing step:
-    
+
     validate - Step 0 : validate input file structure
     prep - Step 1 : Prepare master list of ions including dereplication and optional blank removal
     scrape - Step 2 : Scrape all scan data for each of the ions
     analyze - Step 3 : Analyze all scan data for all of the data
     """,
-    choices=("validate", "prep", "scrape", "analyze")
+    choices=("validate", "prep", "scrape", "analyze"),
 )
 
 parser.add_argument(
-    "source_dir",
-    help="Directory containing input data",
-    type=Path,
+    "source_dir", help="Directory containing input data", type=Path,
 )
 
 parser.add_argument(
-    "conditions",
-    help="Conditions to consider (Minimum 1)",
-    nargs="+",
+    "conditions", help="Conditions to consider (Minimum 1)", nargs="+",
 )
 
 parser.add_argument(
-    "-n",
-    "--name",
-    help="Experiment name (Defaults to source_dir name)",
-    default=None,
+    "-n", "--name", help="Experiment name (Defaults to source_dir name)", default=None,
 )
 
 parser.add_argument(
@@ -97,47 +98,42 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "-j", 
-    "--jobs", 
-    type=int,
-    default=-1,
-    help="Number of jobs to run in parallel",
+    "-j", "--jobs", type=int, default=-1, help="Number of jobs to run in parallel",
 )
 
 parser.add_argument(
     "--retry",
     action="store_true",
-    help="ONLY FOR SCRAPE STEP: resume instead of restarting"
+    help="ONLY FOR SCRAPE STEP: resume instead of restarting",
 )
 
 parser.add_argument(
-    "--print_config",
-    action="store_true",
-    help="Print the configuration and exit program",
-)
-
-parser.add_argument(
-    "--colstomatch",
-    nargs="+",
-    help="Column names to match in dereplication",
-)
-
-parser.add_argument(
-    "--mztol",
-    type=float,
-    help="PrecMz tolerance in PPM"
-)
-
-parser.add_argument(
-    "--rttol",
-    type=float,
-    help="RetTime tolerance in min"
-)
-
-parser.add_argument(
-    "--minreps",
+    "--minscans",
     type=int,
-    help="Minium reps to consider in replication comparison"
+    help="ONLY FOR SCRAPE STEP: Minumum number of scans for a real isotopomer",
+)
+
+parser.add_argument(
+    "--print_config", action="store_true", help="Print the configuration",
+)
+
+parser.add_argument(
+    "--colstomatch", nargs="+", help="Column names to match in dereplication",
+)
+
+parser.add_argument("--mztol", type=float, help="PrecMz tolerance in PPM")
+
+parser.add_argument("--rttol", type=float, help="RetTime tolerance in min")
+
+parser.add_argument(
+    "--minreps", type=int, help="Minium reps to consider in replication comparison"
+)
+
+parser.add_argument(
+    "--minconditions",
+    type=int,
+    help="ONLY FOR ANALYZE STEP: Minimum number of conditions to output in filtered output",
+    default=1,
 )
 
 
@@ -147,33 +143,36 @@ def main():
     args.config = copy.deepcopy(CONFIG)
     if args.colstomatch:
         assert len(args.colstomatch) > 1
-        args.config['ColsToMatch'] = args.colstomatch
+        args.config["ColsToMatch"] = args.colstomatch
     if args.mztol:
         assert args.mztol > 0
-        args.config['Tolerances']['PrecMz'][1] = args.mztol
+        args.config["Tolerances"]["PrecMz"][1] = args.mztol
     if args.rttol:
         assert args.rttol > 0
-        args.config['Tolerances']['RetTime'][1] = args.rttol
+        args.config["Tolerances"]["RetTime"][1] = args.rttol
     if args.minreps:
         assert args.minreps > 0
-        args.config['MinReps'] = args.minreps
+        args.config["MinReps"] = args.minreps
     if args.print_config:
         print(args.config)
-        return 0
     # Default to the name of the source_dir
     if not args.name:
         args.name = args.source_dir.name
-    # Append secondary named to primary 
+    # Append secondary named to primary
     if args.secondary:
         args.conditions = [f"{c}{s}" for c in args.conditions for s in args.secondary]
         # print("Detected secondary conditions")
         # print(args.conditions)
     if args.retry and not args.step == "scrape":
         logging.warning("'--retry' flag has no effect")
+    if args.minscans and not args.step == "scrape":
+        logging.warning("'--minscans' flag has no effect")
+    if args.step == "scrape" and not args.minscans:
+        args.minscans = 5
     if args.step == "validate":
         run_validate(args)
     if args.step == "prep":
-        run_prep (args)
+        run_prep(args)
     if args.step == "scrape":
         run_scrape(args)
     if args.step == "analyze":
