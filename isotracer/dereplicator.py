@@ -5,15 +5,8 @@ import numpy as np
 import pandas as pd
 import rtree
 
-CONFIG = {
-    "ColsToMatch": ["RetTime", "PrecMz", "PrecZ"],
-    "Tolerances": {
-        "PrecMz": ["ppm", 10],
-        "RetTime": ["window", 0.03],
-        "PrecZ": [None, None],
-    },
-    "MinReps": 2,
-}
+from isotracer.config import CONFIG
+
 
 def replicate_compare(df, config=None):
     """Take dataframe and perform Rtree comparison to replicate
@@ -34,9 +27,9 @@ def replicate_compare(df, config=None):
     for c in con_comps:
         if len(c) > 1:
             c_df = df.iloc[list(c)]
-            unique_samples = set(c_df['Sample'].values)
-            if len(unique_samples) >= config['MinReps']:
-                new_data.append(collapse_data_rows(c_df, config['ColsToMatch']))
+            unique_samples = set(c_df["Sample"].values)
+            if len(unique_samples) >= config["MinReps"]:
+                new_data.append(collapse_data_rows(c_df, config["ColsToMatch"]))
     return pd.DataFrame(new_data).round(4)
 
 
@@ -83,16 +76,16 @@ def gen_error_cols(df, config):
     for dcol, einfo in config["Tolerances"].items():
         col = df[dcol]
         etype, evalue = einfo
-        if etype == 'ppm':
-            efunc = lambda x:x*(evalue*1e-6)
-        if etype == 'perc':
-            efunc = lambda x:x*(evalue/100)
-        if etype == 'factor':
-            efunc = lambda x:x*evalue
-        if etype == 'window':
-            efunc = lambda x:evalue
+        if etype == "ppm":
+            efunc = lambda x: x * (evalue * 1e-6)
+        if etype == "perc":
+            efunc = lambda x: x * (evalue / 100)
+        if etype == "factor":
+            efunc = lambda x: x * evalue
+        if etype == "window":
+            efunc = lambda x: evalue
         if etype is None:
-            efunc = lambda x:0
+            efunc = lambda x: 0
         errors = col.apply(efunc)
         df[f"{dcol}_low"] = df[dcol] - errors
         df[f"{dcol}_high"] = df[dcol] + errors
@@ -151,23 +144,25 @@ def get_rects(df: pd.DataFrame, config) -> np.ndarray:
     return df[ecols].values
 
 
-def collapse_data_rows(df: pd.DataFrame, datacols: list, calc_bin_info: bool=False) -> dict:
+def collapse_data_rows(
+    df: pd.DataFrame, datacols: list, calc_bin_info: bool = False
+) -> dict:
     """
     Takes conncect component DF and return average of compared values
     as dict for appending to list for new DF construction
     """
-    unique=set(df["Sample"].values)
+    unique = set(df["Sample"].values)
     data = {k: df[k].mean() for k in datacols}
     if calc_bin_info:
-        bin_info = {cn:[float(df[cn].min()),float(df[cn].max())] for cn in datacols}
-        bin_info['n'] = len(df)
-        data['bin_info'] = json.dumps(bin_info)
+        bin_info = {cn: [float(df[cn].min()), float(df[cn].max())] for cn in datacols}
+        bin_info["n"] = len(df)
+        data["bin_info"] = json.dumps(bin_info)
 
     data["Samples"] = "|".join(unique)
     data["LowScan"] = df["ScanLowRange"].min()
     data["HighScan"] = df["ScanHighRange"].max()
     data["rep_count"] = len(unique)
-    data['RetTime'] = round(data['RetTime'], 3)
+    data["RetTime"] = round(data["RetTime"], 3)
     return data
 
 
