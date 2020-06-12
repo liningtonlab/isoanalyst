@@ -349,7 +349,7 @@ def mark_func(df, results):
     return df1[-df1["Exp_ID"].isna()].copy()
 
 
-def calc_rep_stats(df, exp_id, iso, cond):
+def calc_rep_stats(df, exp_id, iso, cond, min_scans=3):
     data = []
 
     isos = sorted(df.Isotopomer.unique(), key=lambda x: int(x.strip("M")))
@@ -364,7 +364,7 @@ def calc_rep_stats(df, exp_id, iso, cond):
         mj = g[g.Isotopomer == isos[i + 1]]
         scans = np.intersect1d(mi.index, mj.index)
         # TODO: logging
-        if len(scans) < 3:
+        if len(scans) < min_scans:
             continue
         slope, intercept, _, _, std_err = linregress(
             mi.loc[scans, "Intensity"].values, mj.loc[scans, "Intensity"].values
@@ -437,14 +437,19 @@ def condition_stats(data_dir, idxs, cond):
     for idx in idxs:
         slc = df[df["Exp_ID"] == idx]
         unlabelled.append(any(x in slc.Isotope.unique() for x in (12, 14)))
-        label_list.append(any(slc[slc.labelled == True]))
+        label_list.append(len(slc[slc.labelled == True]) > 0)
         label_count.append(isotope_count(slc))
-    return {f"{cond}_unlabelled": unlabelled, f"{cond}_labelled": label_count}
+    return {
+        f"{cond}_unlabelled": unlabelled,
+        f"{cond}_labelled": label_list,
+        f"{cond}_labelled_count": label_count,
+    }
 
 
-def isotope_count(enriched):
+def isotope_count(slc):
     # Takes slice of data with sig p-val and neg tstat
     # Sort by isotopomer ratio
+    enriched = slc[(-slc.Isotope.isin([12, 14])) & (slc.labelled == True)]
     if len(enriched) < 1:
         return 0
     return max(int(i.split("v")[1].strip("M")) for i in enriched.Isotopomer)

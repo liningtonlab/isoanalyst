@@ -54,6 +54,7 @@ def run_analyze(args):
         conditions=args.conditions,
         exp_name=args.name,
         num_cond=args.minconditions,
+        min_scans=args.minscans,
         n_jobs=args.jobs,
     )
 
@@ -165,9 +166,9 @@ def main():
         # print(args.conditions)
     if args.retry and not args.step == "scrape":
         logging.warning("'--retry' flag has no effect")
-    if args.minscans and not args.step == "scrape":
+    if args.minscans and not args.step in ["scrape", "analyze"]:
         logging.warning("'--minscans' flag has no effect")
-    if args.step == "scrape" and not args.minscans:
+    if args.step in ["scrape", "analyze"] and not args.minscans:
         args.minscans = 5
     if args.step == "validate":
         run_validate(args)

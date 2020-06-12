@@ -7,7 +7,8 @@ SECONDARY = ["D0", "D3"]
 INPUT = "SERY/"
 NAME = "SERY"
 TOL = 10
-MINSCAN = 1
+MINSCAN_SCRAPE = 1
+MINSCAN_ANALYZE = 3
 MINCOND = 1
 
 rule all:
@@ -32,11 +33,11 @@ rule scrape:
   input: "prep.done"
   output: touch("scrape.done")
   shell:
-    "isotracer scrape {INPUT} {CONDITIONS} -s {SECONDARY} --retry -n {NAME} --mztol {TOL} --minscans {MINSCAN}"
+    "isotracer scrape {INPUT} {CONDITIONS} -s {SECONDARY} --retry -n {NAME} --mztol {TOL} --minscans {MINSCAN_SCRAPE}"
 
 # default minconditions = 1
 rule analyze:
   input: "scrape.done"
   output: touch("analyze.done")
   shell:
-    "isotracer analyze {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --minconditions {MINCOND}"
+    "isotracer analyze {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --minconditions {MINCOND} --minscans {MINSCAN_ANALYZE}"

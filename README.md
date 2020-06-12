@@ -4,7 +4,7 @@
 
 **Create a conda environment with dependencies**
 
-`conda create -n isotracer -c bioconda -c conda-forge snakemake-minimal rtree scipy joblib`
+`conda create -n isotracer -c bioconda -c conda-forge snakemake-minimal rtree scipy joblib pandas`
 
 This should install a Python 3.8 environment with all the necessary packages.
 

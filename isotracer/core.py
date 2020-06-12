@@ -164,7 +164,7 @@ def isotope_scraper(
 
 
 def isotope_label_detector(
-    source_dir, conditions, exp_name, num_cond=1, master=None, n_jobs=-1
+    source_dir, conditions, exp_name, min_scans=5, num_cond=1, master=None, n_jobs=-1
 ):
     source_dir = Path(source_dir)
     scan_dir = source_dir.joinpath("All_scan_data")
@@ -185,7 +185,7 @@ def isotope_label_detector(
         grouped = df.groupby(["Exp_ID", "Isotope", "Condition"])
         data = []
         for (e_id, iso, c), g in grouped:
-            res = utils.calc_rep_stats(g, e_id, iso, c)
+            res = utils.calc_rep_stats(g, e_id, iso, c, min_scans=min_scans)
             # print(data)
             if len(res) < 1:
                 continue
