@@ -39,6 +39,6 @@ The snakemake pipeline allows for much better reproducibility. I have commented 
 1. Copy the `workflow/Snakefile` to the directory just below where your data is located: i.e. `ROOT` in the example above
 2. Edit the `Snakefile` to contain the required parameters - datadir name, experiment name, conditions, tolerances, etc.
 3. Run `snakemake -n` from the `ROOT` directory to make sure everything is ready to run
-4. Run analysis by running `snakemake` from the `ROOT` directory and wait for analysis to complete (or fail).
+4. Run analysis by running `snakemake --cores 1` from the `ROOT` directory and wait for analysis to complete (or fail).
 
-If you want to re-run an analysis you can either type `snakemake -f` or remove all the `*.done` files.
+If you want to re-run an analysis you can either type `snakemake --cores 1 -f` or remove all the `*.done` files.
