@@ -284,7 +284,7 @@ def calc_exp(g):
     return round(g.PrecMz.mean(), 4), g["LowScan"].min(), g["HighScan"].max()
 
 
-def isotope_slicer(df, mz, low_scan, high_scan, min_scans=5, iso="C13", mz_tol=10):
+def isotope_slicer(df, mz, low_scan, high_scan, min_scans=5, iso="13C", mz_tol=10):
     """Iteratively find all isotope data associated with a given mass.
     Continues until a slice has less than five datapoints.
 
@@ -293,19 +293,21 @@ def isotope_slicer(df, mz, low_scan, high_scan, min_scans=5, iso="C13", mz_tol=1
         mz (float): Precursor mass to start scanning from
         low_scan (int): Low scan value in CPPIS
         high_scan (int): High scan value in CPPIS
+        iso (str): One of 13C or 15 N. Confirmed with assertion
 
     Returns:
         list: indices to mark after processing
     """
+    assert iso in ["13C", "15N"]
     results = []
     # Find base ion,
     # results.append(get_func_slice(df, mz, low_scan, high_scan, seen))
     results.append(get_func_slice(df, mz, low_scan, high_scan))
 
-    # find isotopes +/- C13
+    # find isotopes +/- 13C or 15N
     # Initialize while loop
     # Need to look forwards only because CPPIS only contains M0 peaks
-    if iso == "N15":
+    if iso == "15N":
         iso_func = n_isotope
     else:
         iso_func = c_isotope
