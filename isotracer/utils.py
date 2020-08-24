@@ -253,6 +253,7 @@ def get_func_slice(df, mz, low_scan, high_scan, mz_tol=10):
         mz (float): Mass to query
         low_scan (int): LowScan
         high_scan (int): HighScan
+        mz_tol(number): M/Z tolerance in PPM
 
     Returns:
         iterable: List-like of indices in func001-like DF
@@ -294,7 +295,7 @@ def isotope_slicer(df, mz, low_scan, high_scan, min_scans=5, iso="13C", mz_tol=1
         low_scan (int): Low scan value in CPPIS
         high_scan (int): High scan value in CPPIS
         iso (str): One of 13C or 15 N. Confirmed with assertion
-
+        mz_tol (number): MZ tolerance in PPM
     Returns:
         list: indices to mark after processing
     """
@@ -302,7 +303,7 @@ def isotope_slicer(df, mz, low_scan, high_scan, min_scans=5, iso="13C", mz_tol=1
     results = []
     # Find base ion,
     # results.append(get_func_slice(df, mz, low_scan, high_scan, seen))
-    results.append(get_func_slice(df, mz, low_scan, high_scan))
+    results.append(get_func_slice(df, mz, low_scan, high_scan, mz_tol=mz_tol))
 
     # find isotopes +/- 13C or 15N
     # Initialize while loop
@@ -316,7 +317,7 @@ def isotope_slicer(df, mz, low_scan, high_scan, min_scans=5, iso="13C", mz_tol=1
     while True:
         mn = iso_func(this_mz)
         this_mz = mn
-        indices = get_func_slice(df, mn, low_scan, high_scan, mz_tol=10)
+        indices = get_func_slice(df, mn, low_scan, high_scan, mz_tol=mz_tol)
         results.append(indices)
         # print(f"Found {len(indices)} features")
         # Stop condition
