@@ -410,7 +410,7 @@ def conf_test(t, p, alpha=0.05):
 
 
 def get_summary_df(master):
-    temp = master[["Exp_ID", "RetTime", "PrecMz"]].copy().set_index("Exp_ID")
+    temp = master[["Exp_ID", "RetTime", "PrecMz", "PrecZ"]].copy().set_index("Exp_ID")
     # Sort by ExpID
     temp["indexNumber"] = [int(i.split("_")[-1]) for i in temp.index]
     temp.sort_values("indexNumber", ascending=True, inplace=True)
@@ -421,6 +421,7 @@ def get_summary_df(master):
             "Exp_ID": idx,
             "RetTime": temp.loc[idx, "RetTime"].mean(),
             "PrecMz": temp.loc[idx, "PrecMz"].mean(),
+            "PrezZ": temp.loc[idx, "PrecZ"].mean(),
         }
         for idx in temp.index.unique()
     ]
