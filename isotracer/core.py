@@ -120,7 +120,7 @@ def isotope_scraper(
         # loops through all unique ions in the master list and iteratively adds
         # Set of seen indices in func_df, updated in isotope_slicer
         # disable N15 searching and use wider tolerance
-        iso = "15N" if cond in ("GLU", "GLN") else "13C"
+        iso = "15N" if any(c in cond for c in ("GLU", "GLN")) else "13C"
 
         len_uni = len(master.Exp_ID.unique())
         exps = master.groupby("Exp_ID")
