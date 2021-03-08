@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 import rtree
 
-from isotracer.config import CONFIG
+from isoanalyst.config import CONFIG
 
 
 def replicate_compare(df, config=None):

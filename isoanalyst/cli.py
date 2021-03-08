@@ -3,8 +3,8 @@ import argparse
 import logging
 from pathlib import Path
 
-import isotracer.core as core
-from isotracer.config import CONFIG
+import isoanalyst.core as core
+from isoanalyst.config import CONFIG
 
 
 def run_validate(args):
@@ -62,7 +62,7 @@ def run_analyze(args):
 # Define Parser and Options
 # Main parser
 parser = argparse.ArgumentParser(
-    prog="IsoTracer",
+    prog="isoanalyst",
     description="Analyze MS data for isotopic labelling experiments.",
     formatter_class=argparse.RawTextHelpFormatter,
 )

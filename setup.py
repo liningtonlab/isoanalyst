@@ -1,12 +1,12 @@
 from setuptools import setup
 
 setup(
-name="isotracer",
+name="isoanalyst",
 version="0.0.2",
-packages=["isotracer"],
+packages=["isoanalyst"],
     entry_points={
     'console_scripts': [
-        'isotracer = isotracer.cli:main',
+        'isoanalyst = isoanalyst.cli:main',
     ]
     },
 python_requires='>=3.6'

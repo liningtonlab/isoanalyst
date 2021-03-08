@@ -1,4 +1,4 @@
-# Type `isotracer --help` for all CLI options
+# Type `isoanalyst --help` for all CLI options
 # default rt window = 0.03 min
 # default precmz ppm = 10 ppm
 # configurable with --rttol and --mztol, respectively
@@ -17,14 +17,14 @@ rule all:
 rule validate:
   output: touch("validate.done")
   shell:
-    "isotracer validate {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME}"
+    "isoanalyst validate {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME}"
 
 # default minreps = 3
 rule prep:
   input: "validate.done"
   output: touch("prep.done")
   shell:
-    "isotracer prep {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --mztol {TOL}"
+    "isoanalyst prep {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --mztol {TOL}"
 
 # default minreps = 3
 # `--retry` by default because assuming changes to config
@@ -33,11 +33,11 @@ rule scrape:
   input: "prep.done"
   output: touch("scrape.done")
   shell:
-    "isotracer scrape {INPUT} {CONDITIONS} -s {SECONDARY} --retry -n {NAME} --mztol {TOL} --minscans {MINSCAN_SCRAPE}"
+    "isoanalyst scrape {INPUT} {CONDITIONS} -s {SECONDARY} --retry -n {NAME} --mztol {TOL} --minscans {MINSCAN_SCRAPE}"
 
 # default minconditions = 1
 rule analyze:
   input: "scrape.done"
   output: touch("analyze.done")
   shell:
-    "isotracer analyze {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --minconditions {MINCOND} --minscans {MINSCAN_ANALYZE}"
+    "isoanalyst analyze {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --minconditions {MINCOND} --minscans {MINSCAN_ANALYZE}"

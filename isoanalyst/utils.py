@@ -8,8 +8,8 @@ import numpy as np
 import pandas as pd
 from scipy.stats import linregress, ttest_ind
 
-import isotracer.dereplicator as dereplicator
-import isotracer.exceptions as exc
+import isoanalyst.dereplicator as dereplicator
+import isoanalyst.exceptions as exc
 
 
 def ppm_tolerance(mass, error=10):

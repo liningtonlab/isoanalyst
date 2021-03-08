@@ -5,9 +5,9 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-import isotracer.dereplicator as dereplicator
-import isotracer.utils as utils
-from isotracer.config import CONFIG
+import isoanalyst.dereplicator as dereplicator
+import isoanalyst.utils as utils
+from isoanalyst.config import CONFIG
 
 
 def validate_input(source_dir, conditions):

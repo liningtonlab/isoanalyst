@@ -1,10 +1,10 @@
-# isotracer
+# isoanalyst
 
 # Installation and Dependecies
 
 **Create a conda environment with dependencies**
 
-`conda create -n isotracer -c bioconda -c conda-forge snakemake-minimal rtree scipy joblib pandas`
+`conda create -n isoanalyst -c bioconda -c conda-forge snakemake-minimal rtree scipy joblib pandas`
 
 This should install a Python 3.8 environment with all the necessary packages.
 
@@ -18,7 +18,7 @@ Alternatively, if any changes to the code (i.e.) development are to be done, ins
 
 #### Running the program
 
-Type `isotracer -h` to see details on how the CLI works.
+Type `isoanalyst -h` to see details on how the CLI works.
 
 #### Suggested file structure
 
