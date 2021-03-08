@@ -1,0 +1,14 @@
+name : isoanalyst
+channels :
+  - defaults
+  - conda-forge
+  - bioconda
+dependencies :
+  - python>=3.8
+  - pip
+  - snakemake-minimal
+  - joblib
+  - numpy
+  - pandas
+  - rtree
+  - scipy

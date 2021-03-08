@@ -4,9 +4,9 @@
 
 **Create a conda environment with dependencies**
 
-`conda create -n isoanalyst -c bioconda -c conda-forge snakemake-minimal rtree scipy joblib pandas`
+`conda env create -f environment.yml`
 
-This should install a Python 3.8 environment with all the necessary packages.
+This should install a Python 3.8+ environment with all the necessary packages.
 
 Then to install the CLI program run
 
