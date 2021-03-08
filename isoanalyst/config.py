@@ -1,5 +1,4 @@
-# default configuation object for dereplication
-# could consider having all config options here
+# default configuation object for dereplication and import
 
 CONFIG = {
     "ColsToMatch": ["RetTime", "PrecMz", "PrecZ"],

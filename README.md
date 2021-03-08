@@ -16,11 +16,11 @@ Alternatively, if any changes to the code (i.e.) development are to be done, ins
 
 `python setup.py develop`
 
-#### Running the program
+### Running the program
 
 Type `isoanalyst -h` to see details on how the CLI works.
 
-#### Suggested file structure
+### Suggested file structure
 
 ```
 ROOT
@@ -32,7 +32,7 @@ ROOT
 
 Also, _BLANK_ data should only be present in the CPPIS directory, or else your analysis will get corrupted.
 
-#### Snakemake pipeline
+### Snakemake pipeline
 
 The snakemake pipeline allows for much better reproducibility. I have commented in the file to show some details, but to run the pipeline the steps are as follows:
 
@@ -42,3 +42,13 @@ The snakemake pipeline allows for much better reproducibility. I have commented 
 4. Run analysis by running `snakemake --cores 1` from the `ROOT` directory and wait for analysis to complete (or fail).
 
 If you want to re-run an analysis you can either type `snakemake --cores 1 -f` or remove all the `*.done` files.
+
+### Data Requirements
+
+#### 1. Scan Data
+
+Generic CSV tabular inputs minimally with `["ScanIndex", "RetTime", "Mz", "Intensity"]` column headers.
+
+Can import func0001 CSVs from msExpress.
+
+Can import mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msconvert.html).
