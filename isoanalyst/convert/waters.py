@@ -6,11 +6,6 @@ import pandas as pd
 import pymzml
 
 
-def func001(file_path):
-    df = pd.read_csv(file_path, usecols=["ScanIndex", "ScanTimeMin", "Mz", "Intensity"])
-    return df.rename({"ScanTimeMin": "RetTime"}, copy=True)
-
-
 def mzml(file_path):
     """Import mzML files derived from applying MSConvert to .raw files."""
     headers = ["ScanIndex", "RetTime", "Mz", "Intensity"]
@@ -45,3 +40,28 @@ def mzml(file_path):
             print("Completed import of scan " + str(spec.index))
 
     return pd.DataFrame(input_data, columns=headers)
+
+
+def func001(file_path):
+    df = pd.read_csv(
+        file_path, usecols=["FunctionScanIndex", "ScanTimeMin", "Mz", "Intensity"]
+    )
+    return df.rename(
+        {"FunctionScanIndex": "ScanIndex", " ScanTimeMin": "RetTime"}, copy=True
+    )
+
+
+def cppis(file_path):
+    df = pd.read_csv(
+        file_path,
+        usecols=[
+            "Sample",
+            "PrecMz",
+            "PrecZ",
+            "PrecIntensity",
+            "RetTime",
+            "ScanRangeLow",
+            "ScanRangeHigh",
+        ],
+    )
+    return df.rename({"ScanTimeMin": "RetTime"}, copy=True)

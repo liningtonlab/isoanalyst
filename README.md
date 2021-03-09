@@ -52,3 +52,7 @@ Generic CSV tabular inputs minimally with `["ScanIndex", "RetTime", "Mz", "Inten
 Can import func0001 CSVs from msExpress.
 
 Can import mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msconvert.html).
+
+#### 2. Feature lists
+
+Generic CSV tabular inputs minimally with `["ScanIndex", "RetTime", "Mz", "Intensity"]` column headers.

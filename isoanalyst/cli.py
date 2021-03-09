@@ -10,17 +10,9 @@ from isoanalyst.config import CONFIG
 def run_validate(args):
     print("Running validation...")
     try:
-        core.validate_input(args.source_dir, args.conditions)
-    except AssertionError:
-        print(f"source_dir: {args.source_dir} does not have the required structure")
-        print(
-            """
-Please ensure directory format matches: \033[93m
-    source_dir
-    ├── CPPIS
-    └── func001
-    \033[0m """
-        )
+        core.validate_input(args.input_spec)
+    except AssertionError as e:
+        logger.error(e)
 
 
 def run_prep(args):
@@ -80,46 +72,36 @@ parser.add_argument(
 )
 
 parser.add_argument(
-    "source_dir", help="Directory containing input data", type=Path,
+    "-i",
+    "--input_specification"
+    help="CSV file containing input specifications",
+    type=Path,
 )
 
 parser.add_argument(
-    "conditions", help="Conditions to consider (Minimum 1)", nargs="+",
-)
-
-parser.add_argument(
-    "-n", "--name", help="Experiment name (Defaults to source_dir name)", default=None,
-)
-
-parser.add_argument(
-    "-s",
-    "--secondary",
-    help="Secondary conditions to consider (Minimum 1 if specified)",
-    nargs="+",
-)
-
-parser.add_argument(
-    "-j", "--jobs", type=int, default=-1, help="Number of jobs to run in parallel",
-)
-
-parser.add_argument(
-    "--retry",
-    action="store_true",
-    help="ONLY FOR SCRAPE STEP: resume instead of restarting",
+    "-j",
+    "--jobs",
+    type=int,
+    default=-1,
+    help="Number of jobs to run in parallel",
 )
 
 parser.add_argument(
     "--minscans",
     type=int,
-    help="ONLY FOR SCRAPE STEP: Minumum number of scans for a real isotopomer",
+    help="ONLY FOR SCRAPE STEP: Minumum number of scans for a real isotopomer (Default = 5)",
 )
 
 parser.add_argument(
-    "--print_config", action="store_true", help="Print the configuration",
+    "--print_config",
+    action="store_true",
+    help="Print the configuration",
 )
 
 parser.add_argument(
-    "--colstomatch", nargs="+", help="Column names to match in dereplication",
+    "--colstomatch",
+    nargs="+",
+    help="Column names to match in dereplication",
 )
 
 parser.add_argument("--mztol", type=float, help="PrecMz tolerance in PPM")

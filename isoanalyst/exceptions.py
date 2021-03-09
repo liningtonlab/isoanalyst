@@ -1,6 +1,6 @@
-class IsoScrapeBaseException(Exception):
+class IsoAnalystBaseException(Exception):
     pass
 
 
-class InvalidFilter(IsoScrapeBaseException):
+class InvalidFilter(IsoAnalystBaseException):
     pass
