@@ -3,6 +3,7 @@
 import re
 from functools import reduce
 from pathlib import Path
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -10,9 +11,10 @@ from scipy.stats import linregress, ttest_ind
 
 import isoanalyst.dereplicator as dereplicator
 import isoanalyst.exceptions as exc
+from isoanalyst.input_spec import InputSpec
 
 
-def ppm_tolerance(mass, error=10):
+def ppm_tolerance(mass: float, error: float = 10.0):
     """Determine high,low error range for a given mass
     Range of (mass-10ppm, mass+10ppm)
 
@@ -29,7 +31,7 @@ def ppm_tolerance(mass, error=10):
     return (low, high)
 
 
-def c_isotope(mass, sign=1):
+def c_isotope(mass: float, sign: int = 1):
     """Add mass difference from 12C to 13C to mass
 
     Args:
@@ -37,12 +39,12 @@ def c_isotope(mass, sign=1):
         sign (int): Optional: Plus or minus 1. Default=1
 
     Returns:
-        float: Mass plus mass difference from 12C to 13C
+        float: Mass plus (minus if sign = -1) mass difference from 12C to 13C
     """
     return mass + sign * 1.00335
 
 
-def n_isotope(mass, sign=1):
+def n_isotope(mass: float, sign: int = 1):
     """Add mass difference from 14N to 15N to mass
     14N = 14.003074
     15N = 15.000109
@@ -52,12 +54,12 @@ def n_isotope(mass, sign=1):
         sign (int): Optional: Plus or minus 1. Default=1
 
     Returns:
-        float: Mass plus mass difference from 14N to 15N
+        float: Mass plus (minus if sign = -1) mass difference from 14N to 15N
     """
     return mass + sign * 0.9970349
 
 
-def combine_dfs(dfs):
+def combine_dfs(dfs: List[pd.DataFrame]) -> pd.DataFrame:
     """Combine any number of pandas dataframe
 
     Args:
@@ -74,7 +76,7 @@ all real features in unlabelled control samples"""
 
 
 def prep_cppis(fname, min_rt=0.8, **kwargs):
-    """ Take cppis csv from MSeXpress and drops unnecessary columns and duplicates
+    """Take cppis csv from MSeXpress and drops unnecessary columns and duplicates
 
     Args:
         fname (str or Path): Path to cppis type dataframe
@@ -185,11 +187,13 @@ def getfilenames_cppis(cppis_dir, conditions):
     return files
 
 
-def munge_cppis(files, cond, out_dir, config=None):
+def munge_featurelist(
+    inp_spec: InputSpec, cond: str, out_dir: Path, config: Optional[Dict] = None
+):
     """Pre-process data for specific condition before detecting isotope labelling
 
     Args:
-        files (pd.DataFrame): DataFrame containing list of filenames from getfilenames_cppis function
+        inp_spec: InputSpec
         cond (str): condition ie ACE, ACED0, BLANK, etc
         out_dir (str or Path): Directory to put outputs in
 
@@ -197,13 +201,11 @@ def munge_cppis(files, cond, out_dir, config=None):
         pd.DataFrame: DataFrame which has been pre-processed for IsoTracing
     """
     out_dir = Path(out_dir)
-    replicates = files[
-        files["condition"] == cond
-    ]  # get filenames associated with current condition
-    dfs = [prep_cppis(f) for f in replicates["path"]]
+    replicates = inp_spec.get_feature_filepaths(cond)
     # All reps dataframe
     # Will be editted inplace along the way
-    print("Combining DFs")
+    dfs = [prep_cppis(Path(f)) for f in replicates]
+    print(f"Combining DFs for {cond}")
     df = combine_dfs(dfs)
     df.to_csv(out_dir.joinpath("All_ions_sorted.csv"), index=False)
 

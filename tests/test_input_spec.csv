@@ -1,0 +1,12 @@
+﻿filepath,organism,type,isotope,element,condition
+blanks_rep1.csv,ORG1,f,,,BLANK
+blanks_rep2.csv,ORG1,f,,,blank
+feature_list_rep1.csv,ORG1,f,12,C,COND1
+feature_list_rep2.csv,ORG1,f,12,C,COND1
+feature_list_rep3.csv,ORG1,f,12,C,COND1
+full_scan_nat_rep1.csv,ORG1,s,12,C,COND1
+full_scan_nat_rep2.csv,ORG1,s,12,C,COND1
+full_scan_nat_rep3.csv,ORG1,s,12,C,COND1
+full_scan_labelled_rep1.csv,ORG1,s,13,C,COND1
+full_scan_labelled_rep2.csv,ORG1,s,13,C,COND1
+full_scan_labelled_rep3.csv,ORG1,s,13,C,COND1

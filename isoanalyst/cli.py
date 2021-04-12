@@ -17,7 +17,7 @@ def run_validate(args):
 
 def run_prep(args):
     print("Running prep...")
-    core.cppis_masterlist(
+    core.feature_masterlist(
         source_dir=args.source_dir,
         conditions=args.conditions,
         exp_name=args.name,
@@ -74,8 +74,8 @@ parser.add_argument(
 parser.add_argument(
     "-i",
     "--input_specification"
-    help="CSV file containing input specifications",
     type=Path,
+    help="CSV file containing input specifications",
 )
 
 parser.add_argument(

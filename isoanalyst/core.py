@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 from pathlib import Path
+from typing import Dict, Optional
 
 import joblib
 import pandas as pd
@@ -8,6 +9,7 @@ import pandas as pd
 import isoanalyst.dereplicator as dereplicator
 import isoanalyst.utils as utils
 from isoanalyst.config import CONFIG
+from isoanalyst.input_spec import InputSpec
 
 
 def validate_input(source_dir, conditions):
@@ -25,55 +27,51 @@ def validate_input(source_dir, conditions):
     print("Validation successful!")
 
 
-def cppis_masterlist(
-    source_dir, conditions, exp_name, n_jobs=-1, config=None,
+def feature_masterlist(
+    input_spec: InputSpec,
+    exp_name: str,
+    n_jobs: int = -1,
+    config: Optional[Dict] = None,
+    blank_remove: bool = True,
 ):
     """
-    From a directory takes a folder named 'CPPIS' and munges all the cppis.csv files first by conditions
-    and then combines all files to create an mz masterlist of all features detected in experiment and basketed
-    to align between conditions and replicates.
+    Create an mz masterlist of all features detected in experiment and basketed
+    to align between conditions and replicates. Optional blank subtraction.
     """
     if not config:
         config = CONFIG
-    source_dir = Path(source_dir)  # Make sure is Path object
-    cppis_dir = source_dir.joinpath("CPPIS")
-    print(f"Collecting files from {cppis_dir}")
-    cppis_files = utils.getfilenames_cppis(
-        cppis_dir, conditions
-    )  # df containing paths, filenames and conditions
+    print(f"Collecting feature list files")
 
-    print(f"Working on BLANKS")
-    blank_dir = source_dir.joinpath("BLANKS")
-    # make directory if not exists
-    blank_dir.mkdir(parents=True, exist_ok=True)
-
-    # peaks in blanks to subtract later
-    blanks = utils.munge_cppis(cppis_files, "BLANK", blank_dir, config=config)
-
+    # define here so input_spec and config in scope and not needed as params
     def munge_condition(cond):
         out_dir = source_dir.joinpath(cond)
         out_dir.mkdir(parents=True, exist_ok=True)
         print(f"Working on {cond}")
-        all_collapsed = utils.munge_cppis(cppis_files, cond, out_dir, config=config)
+        all_collapsed = utils.munge_featurelist(
+            input_spec, cond, out_dir, config=config
+        )
         return all_collapsed
 
+    # peaks in blanks to subtract later
+    blanks = munge_condition("BLANK")
+
     # Run pre-processing on conditions in separate processes
-    prim_dfs = joblib.Parallel(n_jobs=n_jobs)(
+    conditions = input_spec.get_conditions()
+    cond_dfs = joblib.Parallel(n_jobs=n_jobs)(
         joblib.delayed(munge_condition)(c) for c in conditions
     )
 
-    all_primary = utils.combine_dfs(prim_dfs)
-    print("Substracting blanks")
-    utils.blank_subtract(
-        blanks, all_primary, config=config
-    )  # blank subtraction on full dataset
+    all_cond_df = utils.combine_dfs(cond_dfs)
+    if blank_remove:
+        print("Substracting blanks")
+        utils.blank_subtract(blanks, all_cond_df, config=config)
     print("Grouping all features")
-    all_primary.reset_index(inplace=True, drop=True)
+    all_cond_df.reset_index(inplace=True, drop=True)
     dereplicator.group_features(
-        all_primary, exp_name, "Exp_ID", config=config
+        all_cond_df, exp_name, "Exp_ID", config=config
     )  # final grouping - Exp_ID used for func001 munging
-    all_primary.to_csv(source_dir.joinpath(f"{exp_name}_All_features.csv"), index=False)
-    return all_primary
+    all_cond_df.to_csv(source_dir.joinpath(f"{exp_name}_All_features.csv"), index=False)
+    return all_cond_df
 
 
 def isotope_scraper(
@@ -86,8 +84,7 @@ def isotope_scraper(
     restart=False,
     config=None,
 ):
-    """This is the final function which will scrape all the isotope data for all ions in the
-    """
+    """This is the final function which will scrape all the isotope data for all ions in the"""
     if not config:
         config = CONFIG
     print("Running isotope scraper")
