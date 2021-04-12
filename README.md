@@ -6,7 +6,10 @@
 
 `conda env create -f environment.yml`
 
-This should install a Python 3.8+ environment with all the necessary packages.
+This should install a Python 3.8+ environment with all the necessary packages. 
+
+__Note:__ This program uses the `rtree` library, which requires bindings
+for `libspatial`. This has been known to cause problems on Windows installs. `rtree` installed from PyPi (`pip install rtree`) should work out of the box. The `environment.yml` has been configured to do this for you.
 
 Then to install the CLI program run
 
@@ -56,3 +59,7 @@ Can import mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msco
 #### 2. Feature lists
 
 Generic CSV tabular inputs minimally with `["ScanIndex", "RetTime", "Mz", "Intensity"]` column headers.
+
+### Development and Testing
+
+To run the tests, you must first install dev dependencies `conda install pytest`.

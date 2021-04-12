@@ -10,7 +10,7 @@ dependencies :
   - joblib
   - numpy
   - pandas
-  - rtree
   - scipy
   - pip:
+    - rtree
     - pymzml
