@@ -1,5 +1,5 @@
 import json
-import os
+from typing import Dict, List, Optional, Generator, Set
 
 import numpy as np
 import pandas as pd
@@ -8,7 +8,7 @@ import rtree
 from isoanalyst.config import CONFIG
 
 
-def replicate_compare(df, config=None):
+def replicate_compare(df: pd.DataFrame, config: Optional[Dict] = None):
     """Take dataframe and perform Rtree comparison to replicate
 
     Args:
@@ -33,7 +33,9 @@ def replicate_compare(df, config=None):
     return pd.DataFrame(new_data).round(4)
 
 
-def group_features(df, cname, new, config=None):
+def group_features(
+    df: pd.DataFrame, cname: str, new: str, config: Optional[Dict] = None
+):
     """Take dataframe and perform Rtree comparison to replicate,
         marking features into groups
 
@@ -57,7 +59,7 @@ def group_features(df, cname, new, config=None):
         counter += 1
 
 
-def gen_error_cols(df, config):
+def gen_error_cols(df: pd.DataFrame, config: Dict):
     """
     Uses the errorinfo dict to generate
     error windows for each of the columns.
@@ -91,7 +93,7 @@ def gen_error_cols(df, config):
         df[f"{dcol}_high"] = df[dcol] + errors
 
 
-def gen_con_comps(rtree: rtree.index.Index, rects: np.ndarray) -> set:
+def gen_con_comps(rtree: rtree.index.Index, rects: np.ndarray) -> Generator[Set[int]]:
     """
     Generate connected components subgraphs for a graph where nodes are hyperrectangles
     and edges are overlapping hyperrectangles. This is done using the rtree index and
@@ -120,7 +122,7 @@ def gen_con_comps(rtree: rtree.index.Index, rects: np.ndarray) -> set:
         yield c
 
 
-def build_rtree(rects: np.ndarray, config) -> rtree.index.Index:
+def build_rtree(rects: np.ndarray, config: Dict) -> rtree.index.Index:
     """
     Build RTree index for rectangles for fast range queries.
     df needs errors cols pre-calculated
@@ -134,7 +136,7 @@ def build_rtree(rects: np.ndarray, config) -> rtree.index.Index:
     return idx
 
 
-def get_rects(df: pd.DataFrame, config) -> np.ndarray:
+def get_rects(df: pd.DataFrame, config: Dict) -> np.ndarray:
     """
     Get the error portions of df
     """
@@ -145,8 +147,8 @@ def get_rects(df: pd.DataFrame, config) -> np.ndarray:
 
 
 def collapse_data_rows(
-    df: pd.DataFrame, datacols: list, calc_bin_info: bool = False
-) -> dict:
+    df: pd.DataFrame, datacols: List, calc_bin_info: bool = False
+) -> Dict:
     """
     Takes conncect component DF and return average of compared values
     as dict for appending to list for new DF construction
@@ -166,7 +168,7 @@ def collapse_data_rows(
     return data
 
 
-def find_overlap(df1, df2, config=None):
+def find_overlap(df1: pd.DataFrame, df2: pd.DataFrame, config: Optional[Dict] = None):
     """Find overlap of df1 in df2 and return set of iloc indices from df1
 
     Args:
