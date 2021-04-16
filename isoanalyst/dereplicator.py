@@ -93,7 +93,9 @@ def gen_error_cols(df: pd.DataFrame, config: Dict):
         df[f"{dcol}_high"] = df[dcol] + errors
 
 
-def gen_con_comps(rtree: rtree.index.Index, rects: np.ndarray) -> Generator[Set[int]]:
+def gen_con_comps(
+    rtree: rtree.index.Index, rects: np.ndarray
+) -> Generator[Set[int], None, None]:
     """
     Generate connected components subgraphs for a graph where nodes are hyperrectangles
     and edges are overlapping hyperrectangles. This is done using the rtree index and

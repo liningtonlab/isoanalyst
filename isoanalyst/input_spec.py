@@ -16,6 +16,12 @@ class InputSpec:
         df = df.applymap(lambda s: s.lower() if type(s) == str else s)
         return cls(df)
 
+    def validate(self):
+        """Make sure all specified input files exist"""
+        filepaths = [Path(f) for f in self.df.filepath]
+        print(filepaths)
+        return all(f.exists() for f in filepaths)
+
     def get_conditions(self) -> List[str]:
         """Get list of conditions as list. Automatically removes "blank" as a condition."""
         remove_blank = lambda lst: [i for i in lst if i != "blank" and not pd.isna(i)]

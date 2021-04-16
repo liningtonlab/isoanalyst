@@ -12,18 +12,13 @@ from isoanalyst.config import CONFIG
 from isoanalyst.input_spec import InputSpec
 
 
-def validate_input(source_dir, conditions):
+def validate_input(input_spec: InputSpec):
     """Make sure required input directories exist
 
     Args:
-        source_dir (str or Path): input directory
+        input_spec (InputSpec): input file specification
     """
-    source_dir = Path(source_dir)
-    assert source_dir.is_dir()
-    cppis_dir = source_dir.joinpath("CPPIS")
-    assert cppis_dir.is_dir()
-    func_dir = source_dir.joinpath("func001")
-    assert func_dir.is_dir()
+    assert input_spec.validate()
     print("Validation successful!")
 
 

@@ -27,15 +27,33 @@ def test_get_conditions():
 
 def test_get_feature_filepaths_blanks():
     inp = InputSpec.from_csv(TESTFILE)
-    expected = ["blanks_rep1.csv", "blanks_rep2.csv"]
+    expected = ["tests/test_files/blanks_rep1.csv", "tests/test_files/blanks_rep2.csv"]
     assert expected == inp.get_feature_filepaths("blank")
 
 
 def test_get_feature_filepaths_condition():
     inp = InputSpec.from_csv(TESTFILE)
     expected = [
-        "feature_list_rep1.csv",
-        "feature_list_rep2.csv",
-        "feature_list_rep3.csv",
+        "tests/test_files/feature_list_rep1.csv",
+        "tests/test_files/feature_list_rep2.csv",
+        "tests/test_files/feature_list_rep3.csv",
     ]
     assert expected == inp.get_feature_filepaths("cond1")
+
+
+def test_get_scan_filepaths():
+    inp = InputSpec.from_csv(TESTFILE)
+    expected = [
+        "tests/test_files/full_scan_nat_rep1.mzml",
+        "tests/test_files/full_scan_nat_rep2.mzml",
+        "tests/test_files/full_scan_nat_rep3.mzml",
+        "tests/test_files/full_scan_labelled_rep1.mzml",
+        "tests/test_files/full_scan_labelled_rep2.mzml",
+        "tests/test_files/full_scan_labelled_rep3.mzml",
+    ]
+    assert expected == inp.get_scan_filepaths("cond1")
+
+
+def test_validate():
+    inp = InputSpec.from_csv(TESTFILE)
+    assert inp.validate()
