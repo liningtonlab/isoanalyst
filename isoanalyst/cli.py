@@ -1,166 +1,269 @@
 import copy
-import argparse
-import logging
+import functools
+import sys
 from pathlib import Path
+from typing import Optional
+
+import click
 
 import isoanalyst.core as core
-from isoanalyst.config import CONFIG
+from isoanalyst.config import get_config, CONFIG
+from isoanalyst.input_spec import InputSpec
+
+## Helper functions
+def common_options(f):
+    options = [
+        click.option(
+            "--config_file",
+            help="Config file input",
+            type=click.Path(exists=True),
+            required=False,
+        ),
+        click.option(
+            "--name",
+            "-n",
+            help="Experiment name - used as output file directory",
+            required=True,
+        ),
+        click.option(
+            "--input_specification",
+            "-i",
+            help="Input specification filename",
+            type=click.Path(exists=True),
+            required=True,
+        ),
+    ]
+    return functools.reduce(lambda x, opt: opt(x), options, f)
 
 
-def run_validate(args):
-    print("Running validation...")
+def gt_zero(ctx, param, value):
     try:
-        core.validate_input(args.input_spec)
-    except AssertionError as e:
-        logger.error(e)
+        assert value > 0
+        return value
+    except AssertionError:
+        raise click.BadParameter(f"{param} must be greater than 0.")
 
 
-def run_prep(args):
-    print("Running prep...")
-    core.feature_masterlist(
-        source_dir=args.source_dir,
-        conditions=args.conditions,
-        exp_name=args.name,
-        n_jobs=args.jobs,
-        config=args.config,
-    )
+############################
+##      CLI Definition
+############################
+@click.group()
+@click.version_option(version="0.1.0")
+def cli():
+    """Isoanalyst CLI entrypoint
 
-
-def run_scrape(args):
-    print("Running scrape...")
-    core.isotope_scraper(
-        source_dir=args.source_dir,
-        conditions=args.conditions,
-        exp_name=args.name,
-        n_jobs=args.jobs,
-        restart=-args.retry,
-        min_scans=args.minscans,
-        config=args.config,
-    )
-
-
-def run_analyze(args):
-    print("Running analyze...")
-    core.isotope_label_detector(
-        source_dir=args.source_dir,
-        conditions=args.conditions,
-        exp_name=args.name,
-        num_cond=args.minconditions,
-        min_scans=args.minscans,
-        n_jobs=args.jobs,
-    )
-
-
-# Define Parser and Options
-# Main parser
-parser = argparse.ArgumentParser(
-    prog="isoanalyst",
-    description="Analyze MS data for isotopic labelling experiments.",
-    formatter_class=argparse.RawTextHelpFormatter,
-)
-
-parser.add_argument(
-    "step",
-    help="""Processing step:
+    Processing steps:
 
     validate - Step 0 : validate input file structure
-    prep - Step 1 : Prepare master list of ions including dereplication and optional blank removal
-    scrape - Step 2 : Scrape all scan data for each of the ions
+
+    prep - Step 1 : Prepare ground truth list of features including dereplication and optional blank removal
+
+    scrape - Step 2 : Scrape all scan data for each of the feature
+
     analyze - Step 3 : Analyze all scan data for all of the data
-    """,
-    choices=("validate", "prep", "scrape", "analyze"),
-)
+    """
+    click.echo("Welcome to IsoAnalyst!")
 
-parser.add_argument(
-    "-i",
-    "--input_specification"
-    type=Path,
-    help="CSV file containing input specifications",
-)
 
-parser.add_argument(
-    "-j",
+############################
+##      VALIDATE
+############################
+@cli.command("validate")
+@common_options
+def run_validate(name: str, input_specification: Path, config_file: Optional[Path]):
+    click.echo(f"Running validation for {name} on {input_specification}")
+    spec = InputSpec.from_csv(input_specification)
+    try:
+        core.validate_input(spec)
+        click.echo(click.style("Validation successful! ✅", fg="green"))
+
+    except AssertionError as e:
+        click.echo(click.style("Validation failed... ❌", fg="red"), err=True)
+        sys.exit(1)
+
+
+############################
+##      PREP
+############################
+@cli.command("prep")
+@common_options
+@click.option(
+    "--blank-remove/--no-blank-remove",
+    default=True,
+    show_default=True,
+    help="Perform blank removal during feature aggregation (or not).",
+)
+@click.option(
+    "--minreps",
+    type=int,
+    default=CONFIG["minreps"],
+    show_default=True,
+    callback=gt_zero,
+    help="Minimum reps to consider in replication comparison",
+)
+@click.option(
+    "--mztol",
+    type=float,
+    default=CONFIG["tolerances"]["precmz"][1],
+    show_default=True,
+    callback=gt_zero,
+    help="precmz tolerance in PPM",
+)
+@click.option(
+    "--rttol",
+    type=float,
+    default=CONFIG["tolerances"]["rettime"][1],
+    show_default=True,
+    callback=gt_zero,
+    help="rettime tolerance in min",
+)
+@click.option(
     "--jobs",
+    "-j",
     type=int,
     default=-1,
-    help="Number of jobs to run in parallel",
+    show_default=True,
+    help="Maximum number of parallel processes",
 )
+def run_prep(
+    name: str,
+    input_specification: Path,
+    config_file: Optional[Path],
+    jobs: int,
+    blank_remove: bool,
+    minreps: int,
+    mztol: int,
+    rttol: int,
+):
 
-parser.add_argument(
+    click.echo(f"Running prep for {name} using {input_specification}")
+    spec = InputSpec.from_csv(input_specification)
+    config = get_config(config_file, minreps=minreps, mztol=mztol, rttol=rttol)
+    source_dir = Path(name.replace(" ", "_"))
+    core.generate_featurelist(
+        input_spec=spec,
+        source_dir=source_dir,
+        exp_name=name,
+        n_jobs=jobs,
+        config=config,
+        blank_remove=blank_remove,
+    )
+
+
+############################
+##      SCRAPE
+############################
+@cli.command("scrape")
+@common_options
+@click.option(
+    "--minreps",
+    type=int,
+    default=CONFIG["minreps"],
+    show_default=True,
+    callback=gt_zero,
+    help="Minimum reps to consider in replication comparison",
+)
+@click.option(
     "--minscans",
     type=int,
-    help="ONLY FOR SCRAPE STEP: Minumum number of scans for a real isotopomer (Default = 5)",
+    default=2,
+    show_default=True,
+    callback=gt_zero,
+    help="Minumum number of scans",
 )
-
-parser.add_argument(
-    "--print_config",
-    action="store_true",
-    help="Print the configuration",
+@click.option(
+    "--mztol",
+    type=float,
+    default=CONFIG["tolerances"]["precmz"][1],
+    show_default=True,
+    callback=gt_zero,
+    help="precmz tolerance in PPM",
 )
-
-parser.add_argument(
-    "--colstomatch",
-    nargs="+",
-    help="Column names to match in dereplication",
+@click.option(
+    "--rttol",
+    type=float,
+    default=CONFIG["tolerances"]["rettime"][1],
+    show_default=True,
+    callback=gt_zero,
+    help="rettime tolerance in min",
 )
-
-parser.add_argument("--mztol", type=float, help="PrecMz tolerance in PPM")
-
-parser.add_argument("--rttol", type=float, help="RetTime tolerance in min")
-
-parser.add_argument(
-    "--minreps", type=int, help="Minium reps to consider in replication comparison"
+@click.option(
+    "--jobs",
+    "-j",
+    type=int,
+    default=-1,
+    show_default=True,
+    help="Maximum number of parallel processes",
 )
+def run_scrape(
+    name: str,
+    input_specification: Path,
+    config_file: Optional[Path],
+    jobs: int,
+    minscans: int,
+    minreps: int,
+    mztol: float,
+    rttol: float,
+):
+    click.echo(f"Running scrape for {name} using {input_specification}")
+    spec = InputSpec.from_csv(input_specification)
+    config = get_config(config_file, minreps=minreps, mztol=mztol, rttol=rttol)
+    source_dir = Path(name.replace(" ", "_"))
+    core.isotope_scraper(
+        input_spec=spec,
+        source_dir=source_dir,
+        exp_name=name,
+        n_jobs=jobs,
+        min_scans=minscans,
+        config=config,
+    )
 
-parser.add_argument(
+
+############################
+##      ANALYZE
+############################
+@cli.command("analyze")
+@common_options
+@click.option(
     "--minconditions",
     type=int,
-    help="ONLY FOR ANALYZE STEP: Minimum number of conditions to output in filtered output",
     default=1,
+    show_default=True,
+    callback=gt_zero,
+    help="Minimum number of conditions to output in filtered output",
 )
-
-
-def main():
-    args = parser.parse_args()
-    # Parse extra config options
-    args.config = copy.deepcopy(CONFIG)
-    if args.colstomatch:
-        assert len(args.colstomatch) > 1
-        args.config["ColsToMatch"] = args.colstomatch
-    if args.mztol:
-        assert args.mztol > 0
-        args.config["Tolerances"]["PrecMz"][1] = args.mztol
-    if args.rttol:
-        assert args.rttol > 0
-        args.config["Tolerances"]["RetTime"][1] = args.rttol
-    if args.minreps:
-        assert args.minreps > 0
-        args.config["MinReps"] = args.minreps
-    if args.print_config:
-        print(args.config)
-    # Default to the name of the source_dir
-    if not args.name:
-        args.name = args.source_dir.name
-    # Append secondary named to primary
-    if args.secondary:
-        args.conditions = [f"{c}{s}" for c in args.conditions for s in args.secondary]
-        # print("Detected secondary conditions")
-        # print(args.conditions)
-    if args.retry and not args.step == "scrape":
-        logging.warning("'--retry' flag has no effect")
-    if args.minscans and not args.step in ["scrape", "analyze"]:
-        logging.warning("'--minscans' flag has no effect")
-    if args.step in ["scrape", "analyze"] and not args.minscans:
-        args.minscans = 5
-    if args.step == "validate":
-        run_validate(args)
-    if args.step == "prep":
-        run_prep(args)
-    if args.step == "scrape":
-        run_scrape(args)
-    if args.step == "analyze":
-        run_analyze(args)
-
-
-if __name__ == "__main__":
-    main()
+@click.option(
+    "--minscans",
+    type=int,
+    default=5,
+    show_default=True,
+    callback=gt_zero,
+    help="Minumum number of scans",
+)
+@click.option(
+    "--jobs",
+    "-j",
+    type=int,
+    default=-1,
+    show_default=True,
+    help="Maximum number of parallel processes",
+)
+def run_analyze(
+    name: str,
+    input_specification: Path,
+    config_file: Optional[Path],
+    jobs: int,
+    minscans: int,
+    minconditions: int,
+):
+    click.echo(f"Running analysis for {name} using {input_specification}")
+    spec = InputSpec.from_csv(input_specification)
+    source_dir = Path(name.replace(" ", "_"))
+    core.isotope_label_detector(
+        input_spec=spec,
+        source_dir=source_dir,
+        exp_name=name,
+        min_scans=minscans,
+        num_cond=minconditions,
+        n_jobs=jobs,
+    )

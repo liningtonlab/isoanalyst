@@ -27,9 +27,9 @@ def replicate_compare(df: pd.DataFrame, config: Optional[Dict] = None):
     for c in con_comps:
         if len(c) > 1:
             c_df = df.iloc[list(c)]
-            unique_samples = set(c_df["Sample"].values)
-            if len(unique_samples) >= config["MinReps"]:
-                new_data.append(collapse_data_rows(c_df, config["ColsToMatch"]))
+            unique_samples = set(c_df["sample"].values)
+            if len(unique_samples) >= config["minreps"]:
+                new_data.append(collapse_data_rows(c_df, config["colstomatch"]))
     return pd.DataFrame(new_data).round(4)
 
 
@@ -75,7 +75,7 @@ def gen_error_cols(df: pd.DataFrame, config: Dict):
         errorinfo (dict): dict of error information
     """
 
-    for dcol, einfo in config["Tolerances"].items():
+    for dcol, einfo in config["tolerances"].items():
         col = df[dcol]
         etype, evalue = einfo
         if etype == "ppm":
@@ -129,7 +129,7 @@ def build_rtree(rects: np.ndarray, config: Dict) -> rtree.index.Index:
     Build RTree index for rectangles for fast range queries.
     df needs errors cols pre-calculated
     """
-    dims = len(config["ColsToMatch"])
+    dims = len(config["colstomatch"])
     p = rtree.index.Property()
     p.dimension = dims
     p.interleaved = False
@@ -142,8 +142,8 @@ def get_rects(df: pd.DataFrame, config: Dict) -> np.ndarray:
     """
     Get the error portions of df
     """
-    ecols = [f"{c}_low" for c in config["ColsToMatch"]]
-    ecols = ecols + [f"{c}_high" for c in config["ColsToMatch"]]
+    ecols = [f"{c}_low" for c in config["colstomatch"]]
+    ecols = ecols + [f"{c}_high" for c in config["colstomatch"]]
 
     return df[ecols].values
 
@@ -155,18 +155,18 @@ def collapse_data_rows(
     Takes conncect component DF and return average of compared values
     as dict for appending to list for new DF construction
     """
-    unique = set(df["Sample"].values)
+    unique = set(df["sample"].values)
     data = {k: df[k].mean() for k in datacols}
     if calc_bin_info:
         bin_info = {cn: [float(df[cn].min()), float(df[cn].max())] for cn in datacols}
         bin_info["n"] = len(df)
         data["bin_info"] = json.dumps(bin_info)
 
-    data["Samples"] = "|".join(unique)
-    data["LowScan"] = df["ScanLowRange"].min()
-    data["HighScan"] = df["ScanHighRange"].max()
+    data["samples"] = "|".join(unique)
+    data["lowscan"] = df["scanlowrange"].min()
+    data["highscan"] = df["scanhighrange"].max()
     data["rep_count"] = len(unique)
-    data["RetTime"] = round(data["RetTime"], 3)
+    data["rettime"] = round(data["rettime"], 3)
     return data
 
 

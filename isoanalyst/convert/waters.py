@@ -2,13 +2,28 @@
 
 """Tool to convert source data in to isoanalyst input format"""
 
+from pathlib import Path
+from typing import Union, List
+
 import pandas as pd
 import pymzml
 
+USED_CPPIS_COLUMNS = [
+    "Sample",
+    "PrecMz",
+    "PrecZ",
+    "PrecIntensity",
+    "RetTime",
+    "ScanLowRange",
+    "ScanHighRange",
+]
 
-def mzml(file_path):
+FUNC001_COLUMNS = ["FunctionScanIndex", "RT", "MZ", "Intensity"]
+
+
+def mzml(file_path: Union[str, Path]):
     """Import mzML files derived from applying MSConvert to .raw files."""
-    headers = ["ScanIndex", "RetTime", "Mz", "Intensity"]
+    headers = ["scanindex", "rettime", "mz", "intensity"]
 
     # Borrowed and modified from https://github.com/rlinington/ms2analyte/blob/master/ms2analyte/converters/waters.py
     # Waters data includes the lockspray internal calibrant scans as 'MS1' data. These are differentiated from true
@@ -19,7 +34,7 @@ def mzml(file_path):
     # therefore all legitimate for inclusion.
 
     # Parse mzML file and format appropriate scan data as Dataframe
-    run = pymzml.run.Reader(file_path)
+    run = pymzml.run.Reader(str(file_path))
     input_data = []
     for spec in run:
         # Skip over non-MS1 data
@@ -42,26 +57,19 @@ def mzml(file_path):
     return pd.DataFrame(input_data, columns=headers)
 
 
-def func001(file_path):
-    df = pd.read_csv(
-        file_path, usecols=["FunctionScanIndex", "ScanTimeMin", "Mz", "Intensity"]
-    )
+def func001(
+    file_path: Union[str, Path], usecols: List = FUNC001_COLUMNS
+) -> pd.DataFrame:
+    df = pd.read_csv(file_path, usecols=usecols)
+    df.columns = df.columns.str.lower()
     return df.rename(
-        {"FunctionScanIndex": "ScanIndex", " ScanTimeMin": "RetTime"}, copy=True
+        columns={"functionscanindex": "scanindex", "rt": "rettime"}, copy=True
     )
 
 
-def cppis(file_path):
-    df = pd.read_csv(
-        file_path,
-        usecols=[
-            "Sample",
-            "PrecMz",
-            "PrecZ",
-            "PrecIntensity",
-            "RetTime",
-            "ScanRangeLow",
-            "ScanRangeHigh",
-        ],
-    )
-    return df.rename({"ScanTimeMin": "RetTime"}, copy=True)
+def cppis(
+    file_path: Union[str, Path], usecols: List = USED_CPPIS_COLUMNS
+) -> pd.DataFrame:
+    df = pd.read_csv(file_path, usecols=usecols)
+    df.columns = df.columns.str.lower()
+    return df.drop_duplicates()

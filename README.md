@@ -42,15 +42,15 @@ The snakemake pipeline allows for much better reproducibility. I have commented 
 1. Copy the `workflow/Snakefile` to the directory just below where your data is located: i.e. `ROOT` in the example above
 2. Edit the `Snakefile` to contain the required parameters - datadir name, experiment name, conditions, tolerances, etc.
 3. Run `snakemake -n` from the `ROOT` directory to make sure everything is ready to run
-4. Run analysis by running `snakemake --cores 1` from the `ROOT` directory and wait for analysis to complete (or fail).
+4. Run analysis by running `snakemake -j1` from the `ROOT` directory and wait for analysis to complete (or fail).
 
-If you want to re-run an analysis you can either type `snakemake --cores 1 -f` or remove all the `*.done` files.
+If you want to re-run an analysis you can either type `snakemake --j1 -F` or remove all the `*.done` files.
 
 ### Data Requirements
 
 #### 1. Scan Data
 
-Generic CSV tabular inputs minimally with `["ScanIndex", "RetTime", "Mz", "Intensity"]` column headers.
+Generic CSV tabular inputs minimally with `["FunctionScanIndex", "RT", "MZ", "Intensity"]` column headers.
 
 Can import func0001 CSVs from msExpress.
 
@@ -58,8 +58,17 @@ Can import mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msco
 
 #### 2. Feature lists
 
-Generic CSV tabular inputs minimally with `["ScanIndex", "RetTime", "Mz", "Intensity"]` column headers.
+Generic CSV tabular inputs minimally with `["Sample", "PrecMz", "PrecZ", "PrecIntensity", "RetTime", "ScanLowRange", "ScanHighRange"]` column headers.
+
+Working on MzMine2 import pipeline.
 
 ### Development and Testing
 
 To run the tests, you must first install dev dependencies `conda install pytest`.
+
+
+#### Data collection Recommendation
+
+Not supported for DDA.
+
+Either DIA with interleaved scans or MS1 only.
