@@ -6,7 +6,10 @@
 
 `conda env create -f environment.yml`
 
-This should install a Python 3.8+ environment with all the necessary packages.
+This should install a Python 3.8+ environment with all the necessary packages. 
+
+__Note:__ This program uses the `rtree` library, which requires bindings
+for `libspatial`. This has been known to cause problems on Windows installs. `rtree` installed from PyPi (`pip install rtree`) should work out of the box. The `environment.yml` has been configured to do this for you.
 
 Then to install the CLI program run
 
@@ -39,20 +42,41 @@ The snakemake pipeline allows for much better reproducibility. I have commented 
 1. Copy the `workflow/Snakefile` to the directory just below where your data is located: i.e. `ROOT` in the example above
 2. Edit the `Snakefile` to contain the required parameters - datadir name, experiment name, conditions, tolerances, etc.
 3. Run `snakemake -n` from the `ROOT` directory to make sure everything is ready to run
-4. Run analysis by running `snakemake --cores 1` from the `ROOT` directory and wait for analysis to complete (or fail).
+4. Run analysis by running `snakemake -j1` from the `ROOT` directory and wait for analysis to complete (or fail).
 
-If you want to re-run an analysis you can either type `snakemake --cores 1 -f` or remove all the `*.done` files.
+If you want to re-run an analysis you can either type `snakemake --j1 -F` or remove all the `*.done` files.
 
 ### Data Requirements
 
-#### 1. Scan Data
 
-Generic CSV tabular inputs minimally with `["ScanIndex", "RetTime", "Mz", "Intensity"]` column headers.
+#### 1. Feature lists
+
+Generic CSV tabular inputs minimally with `["Sample", "PrecMz", "PrecZ", "PrecIntensity", "RetTime", "ScanLowRange", "ScanHighRange"]` column headers. These are compatible msExpress CPPIS files.
+
+Working on MzMine2 import pipeline.
+
+MzMine outputs only require the `["row m/z", "row retention time"]` columns. 
+
+__Question:__ Intensity? Use MzMine Peak Area?
+
+The program will then set a window of 10 scans on both sides of the center scan index detected during all scan importing.
+
+
+#### 2. Scan Data
+
+Generic CSV tabular inputs minimally with `["FunctionScanIndex", "RT", "MZ", "Intensity"]` column headers.
 
 Can import func0001 CSVs from msExpress.
 
 Can import mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msconvert.html).
 
-#### 2. Feature lists
+### Development and Testing
 
-Generic CSV tabular inputs minimally with `["ScanIndex", "RetTime", "Mz", "Intensity"]` column headers.
+To run the tests, you must first install dev dependencies `conda install pytest`.
+
+
+#### Data collection Recommendation
+
+Not supported for DDA.
+
+Either DIA with interleaved scans or MS1 only.

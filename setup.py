@@ -1,14 +1,17 @@
 from setuptools import setup
+from isoanalyst import VERSION
 
 setup(
-name="isoanalyst",
-version="0.0.2",
-packages=["isoanalyst"],
+    name="isoanalyst",
+    version=VERSION,
+    packages=["isoanalyst"],
+    install_requires=[
+        "click",
+    ],
     entry_points={
-    'console_scripts': [
-        'isoanalyst = isoanalyst.cli:main',
-    ]
+        "console_scripts": [
+            "isoanalyst = isoanalyst.cli:cli",
+        ]
     },
-python_requires='>=3.6'
+    python_requires=">=3.6",
 )
-

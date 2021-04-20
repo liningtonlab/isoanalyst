@@ -1,1 +1,1 @@
-from isoanalyst.core import *
+VERSION = "0.2.0"

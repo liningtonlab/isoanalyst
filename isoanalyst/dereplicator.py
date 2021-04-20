@@ -1,5 +1,5 @@
 import json
-import os
+from typing import Dict, List, Optional, Generator, Set
 
 import numpy as np
 import pandas as pd
@@ -8,7 +8,7 @@ import rtree
 from isoanalyst.config import CONFIG
 
 
-def replicate_compare(df, config=None):
+def replicate_compare(df: pd.DataFrame, config: Optional[Dict] = None):
     """Take dataframe and perform Rtree comparison to replicate
 
     Args:
@@ -27,13 +27,15 @@ def replicate_compare(df, config=None):
     for c in con_comps:
         if len(c) > 1:
             c_df = df.iloc[list(c)]
-            unique_samples = set(c_df["Sample"].values)
-            if len(unique_samples) >= config["MinReps"]:
-                new_data.append(collapse_data_rows(c_df, config["ColsToMatch"]))
+            unique_samples = set(c_df["sample"].values)
+            if len(unique_samples) >= config["minreps"]:
+                new_data.append(collapse_data_rows(c_df, config["colstomatch"]))
     return pd.DataFrame(new_data).round(4)
 
 
-def group_features(df, cname, new, config=None):
+def group_features(
+    df: pd.DataFrame, cname: str, new: str, config: Optional[Dict] = None
+):
     """Take dataframe and perform Rtree comparison to replicate,
         marking features into groups
 
@@ -57,7 +59,7 @@ def group_features(df, cname, new, config=None):
         counter += 1
 
 
-def gen_error_cols(df, config):
+def gen_error_cols(df: pd.DataFrame, config: Dict):
     """
     Uses the errorinfo dict to generate
     error windows for each of the columns.
@@ -73,7 +75,7 @@ def gen_error_cols(df, config):
         errorinfo (dict): dict of error information
     """
 
-    for dcol, einfo in config["Tolerances"].items():
+    for dcol, einfo in config["tolerances"].items():
         col = df[dcol]
         etype, evalue = einfo
         if etype == "ppm":
@@ -91,7 +93,9 @@ def gen_error_cols(df, config):
         df[f"{dcol}_high"] = df[dcol] + errors
 
 
-def gen_con_comps(rtree: rtree.index.Index, rects: np.ndarray) -> set:
+def gen_con_comps(
+    rtree: rtree.index.Index, rects: np.ndarray
+) -> Generator[Set[int], None, None]:
     """
     Generate connected components subgraphs for a graph where nodes are hyperrectangles
     and edges are overlapping hyperrectangles. This is done using the rtree index and
@@ -120,12 +124,12 @@ def gen_con_comps(rtree: rtree.index.Index, rects: np.ndarray) -> set:
         yield c
 
 
-def build_rtree(rects: np.ndarray, config) -> rtree.index.Index:
+def build_rtree(rects: np.ndarray, config: Dict) -> rtree.index.Index:
     """
     Build RTree index for rectangles for fast range queries.
     df needs errors cols pre-calculated
     """
-    dims = len(config["ColsToMatch"])
+    dims = len(config["colstomatch"])
     p = rtree.index.Property()
     p.dimension = dims
     p.interleaved = False
@@ -134,39 +138,44 @@ def build_rtree(rects: np.ndarray, config) -> rtree.index.Index:
     return idx
 
 
-def get_rects(df: pd.DataFrame, config) -> np.ndarray:
+def get_rects(df: pd.DataFrame, config: Dict) -> np.ndarray:
     """
     Get the error portions of df
     """
-    ecols = [f"{c}_low" for c in config["ColsToMatch"]]
-    ecols = ecols + [f"{c}_high" for c in config["ColsToMatch"]]
+    ecols = [f"{c}_low" for c in config["colstomatch"]]
+    ecols = ecols + [f"{c}_high" for c in config["colstomatch"]]
 
     return df[ecols].values
 
 
 def collapse_data_rows(
-    df: pd.DataFrame, datacols: list, calc_bin_info: bool = False
-) -> dict:
+    df: pd.DataFrame, datacols: List, calc_bin_info: bool = False
+) -> Dict:
     """
     Takes conncect component DF and return average of compared values
     as dict for appending to list for new DF construction
     """
-    unique = set(df["Sample"].values)
+    unique = set(df["sample"].values)
     data = {k: df[k].mean() for k in datacols}
     if calc_bin_info:
         bin_info = {cn: [float(df[cn].min()), float(df[cn].max())] for cn in datacols}
         bin_info["n"] = len(df)
         data["bin_info"] = json.dumps(bin_info)
 
-    data["Samples"] = "|".join(unique)
-    data["LowScan"] = df["ScanLowRange"].min()
-    data["HighScan"] = df["ScanHighRange"].max()
+    data["samples"] = "|".join(unique)
+    # Detected the scan ranges when CPPIS data is imported
+    try:
+        data["lowscan"] = df["scanlowrange"].min()
+        data["highscan"] = df["scanhighrange"].max()
+    except KeyError:
+        pass
+
     data["rep_count"] = len(unique)
-    data["RetTime"] = round(data["RetTime"], 3)
+    data["rettime"] = round(data["rettime"], 3)
     return data
 
 
-def find_overlap(df1, df2, config=None):
+def find_overlap(df1: pd.DataFrame, df2: pd.DataFrame, config: Optional[Dict] = None):
     """Find overlap of df1 in df2 and return set of iloc indices from df1
 
     Args:
