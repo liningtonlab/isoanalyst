@@ -188,6 +188,22 @@ def run_prep(
     help="rettime tolerance in min",
 )
 @click.option(
+    "--minintensity",
+    type=int,
+    default=600,
+    show_default=True,
+    callback=gt_zero,
+    help="Minimum intensity threshold for data",
+)
+@click.option(
+    "--minrt",
+    type=float,
+    default=0.8,
+    show_default=True,
+    callback=gt_zero,
+    help="Ignores data before minimum RT (minutes)",
+)
+@click.option(
     "--jobs",
     "-j",
     type=int,
@@ -204,6 +220,8 @@ def run_scrape(
     minreps: int,
     mztol: float,
     rttol: float,
+    minintensity: int,
+    minrt: float,
 ):
     click.echo(f"Running scrape for {name} using {input_specification}")
     spec = InputSpec.from_csv(input_specification)
@@ -215,6 +233,8 @@ def run_scrape(
         exp_name=name,
         n_jobs=jobs,
         min_scans=minscans,
+        min_intensity=minintensity,
+        min_rt=minrt,
         config=config,
     )
 

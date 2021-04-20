@@ -97,28 +97,31 @@ def prep_featurefile(fname: Path, min_rt=0.8, **kwargs):
     return df[df[rt_col] > min_rt].copy()
 
 
-def prep_scan(fname: Path, inp_spec: InputSpec, min_rt=0.8, **kwargs):
+def prep_scan(
+    fname: Path, inp_spec: InputSpec, min_intensity: int, min_rt: float = 0.8, **kwargs
+):
     """Drop unnecessary columns and add metadata to all scan DF
 
     Args:
         fname (Path): Path to all scan CSV
         inp_spec (InputSpec): Input specification
+        min_intensity(int, optional): Filter data less than this value. MUST BE >= 0
         min_rt(float, optional): Filter RT less than this value. MUST BE >= 0
 
     Returns:
         pd.DataFrame: Pre-processed all scan DF
     """
     # Validate filter
-    if not min_rt >= 0.0:
+    if not min_rt >= 0.0 or not min_intensity >= 0:
         raise exc.InvalidFilter()
 
     # Some defaults with flexibility for kwargs
     rt_col = kwargs.get("rt_col", "rettime")
 
     if fname.stem.lower() == "mzml":
-        df = waters.mzml(fname)
+        df = waters.mzml(fname, min_intensity=min_intensity)
     elif "func001" in fname.name:
-        df = waters.func001(fname)
+        df = waters.func001(fname, min_intensity=min_intensity)
 
     meta = inp_spec.get_filepath_info(fname)
     df["organism"] = meta["organism"]

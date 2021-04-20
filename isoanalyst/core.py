@@ -76,6 +76,8 @@ def isotope_scraper(
     exp_name: str,
     config: Dict,
     min_scans: int,
+    min_intensity: int,
+    min_rt: float,
     n_jobs: int,
     restart: bool = True,  # retry by default
 ):
@@ -96,7 +98,12 @@ def isotope_scraper(
 
         # add replicate func files for current condition
         c_funcs = input_spec.get_scan_filepaths(cond)
-        c_dfs = (utils.prep_scan(Path(f), input_spec) for f in c_funcs)
+        c_dfs = (
+            utils.prep_scan(
+                Path(f), input_spec, min_intensity=min_intensity, min_rt=min_rt
+            )
+            for f in c_funcs
+        )
 
         # merged data frame of all func001s for the given condition 'c'
         print(f"Combining files for {cond}")

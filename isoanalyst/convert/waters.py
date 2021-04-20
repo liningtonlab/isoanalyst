@@ -21,7 +21,7 @@ USED_CPPIS_COLUMNS = [
 FUNC001_COLUMNS = ["FunctionScanIndex", "RT", "MZ", "Intensity"]
 
 
-def mzml(file_path: Union[str, Path]):
+def mzml(file_path: Union[str, Path], min_intensity: int = 600):
     """Import mzML files derived from applying MSConvert to .raw files."""
     headers = ["scanindex", "rettime", "mz", "intensity"]
 
@@ -40,28 +40,34 @@ def mzml(file_path: Union[str, Path]):
         # Skip over non-MS1 data
         if spec.ms_level != 1:
             continue
-        # Skip lockspray or other functions
-        if spec.id_dict.get("function") != 1:
-            continue
+        # Skip lockspray or other functions if there are any!
+        # If not, this is probably not Waters data and should be fine...
+        fn = spec.id_dict.get("function")
+        if fn is not None:
+            if fn != 1:
+                continue
         scan_number = spec.ID
-        retention_time = round(spec.scan_time_in_minutes(), 2)
+        retention_time = round(spec.scan_time_in_minutes(), 3)
         for peak in spec.peaks("raw"):
             mz = round(peak[0], 4)
             intensity = int(peak[1])
+            if intensity < min_intensity:
+                continue
             input_data.append([scan_number, retention_time, mz, intensity])
 
         # Print import progress. Useful because importing large mzML files can be slow.
         if spec.index % 100 == 0 and spec.index > 0:
-            print("Completed import of scan " + str(spec.index))
+            print("Completed import of scan " + str(spec.ID))
 
     return pd.DataFrame(input_data, columns=headers)
 
 
 def func001(
-    file_path: Union[str, Path], usecols: List = FUNC001_COLUMNS
+    file_path: Union[str, Path], min_intensity: int, usecols: List = FUNC001_COLUMNS
 ) -> pd.DataFrame:
     df = pd.read_csv(file_path, usecols=usecols)
     df.columns = df.columns.str.lower()
+    df = df[df.intensity > min_intensity]
     return df.rename(
         columns={"functionscanindex": "scanindex", "rt": "rettime"}, copy=True
     )
