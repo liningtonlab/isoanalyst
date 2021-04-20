@@ -14,7 +14,9 @@ import isoanalyst.exceptions as exc
 from isoanalyst.input_spec import InputSpec
 from isoanalyst.convert import waters, mzmine
 
-
+############################
+##      General
+############################
 def ppm_tolerance(mass: float, error: float = 10.0):
     """Determine high,low error range for a given mass
     Range of (mass-10ppm, mass+10ppm)
@@ -72,10 +74,14 @@ def combine_dfs(dfs: List[pd.DataFrame]) -> pd.DataFrame:
     return pd.concat(dfs, sort=False).reset_index(drop=True)
 
 
-"""All functions for munging cppis.csv files to create an mz featureslist containing
-all real features in unlabelled control samples"""
+def get_featurelist(source_dir: Path, exp_name: str):
+    all_features_csv = source_dir / f"{exp_name}_all_features.csv"
+    return pd.read_csv(all_features_csv)
 
 
+############################
+##      Prep
+############################
 def prep_featurefile(fname: Path, min_rt=0.8, **kwargs):
     """Take feature file and convert / get necessary data
 
@@ -93,40 +99,6 @@ def prep_featurefile(fname: Path, min_rt=0.8, **kwargs):
         df = waters.cppis(fname)
     else:
         df = mzmine.feature_list(fname)
-
-    return df[df[rt_col] > min_rt].copy()
-
-
-def prep_scan(
-    fname: Path, inp_spec: InputSpec, min_intensity: int, min_rt: float = 0.8, **kwargs
-):
-    """Drop unnecessary columns and add metadata to all scan DF
-
-    Args:
-        fname (Path): Path to all scan CSV
-        inp_spec (InputSpec): Input specification
-        min_intensity(int, optional): Filter data less than this value. MUST BE >= 0
-        min_rt(float, optional): Filter RT less than this value. MUST BE >= 0
-
-    Returns:
-        pd.DataFrame: Pre-processed all scan DF
-    """
-    # Validate filter
-    if not min_rt >= 0.0 or not min_intensity >= 0:
-        raise exc.InvalidFilter()
-
-    # Some defaults with flexibility for kwargs
-    rt_col = kwargs.get("rt_col", "rettime")
-
-    if fname.stem.lower() == "mzml":
-        df = waters.mzml(fname, min_intensity=min_intensity)
-    elif "func001" in fname.name:
-        df = waters.func001(fname, min_intensity=min_intensity)
-
-    meta = inp_spec.get_filepath_info(fname)
-    df["organism"] = meta["organism"]
-    df["isotope"] = meta["isotope"]
-    df["condition"] = f'{meta["condition"]}-{meta["replicate"]}'
 
     return df[df[rt_col] > min_rt].copy()
 
@@ -157,6 +129,66 @@ def munge_featurelist(inp_spec: InputSpec, cond: str, out_dir: Path, config: Dic
     averaged.to_csv(out_dir.joinpath("all_ions_averaged.csv"), index=False)
 
     return averaged
+
+
+def blank_subtract(blank_df, df, config, inplace=True):
+    """Given a DF of blank feature list data and another feature list DF,
+    remove blanks from DF
+
+    Args:
+        blank_df (pd.DataFrame): Blanks data frame
+        df (pd.DataFrame): Other featurelist DF
+        inplace (bool, optional): Edit dataframe in place. Defaults to True.
+    """
+    # Make sure indices are sequential integers 0,1,2,etc...
+    df.reset_index(inplace=True, drop=True)
+    # Keep a set of IDs to drop
+    drop_me = dereplicator.find_overlap(df, blank_df, config=config)
+    # Will return None if inplace=True, else return DataFrame
+    return df.drop(drop_me, inplace=inplace)
+
+
+############################
+##      Scrape
+############################
+def prep_scan(
+    fname: Path,
+    inp_spec: InputSpec,
+    min_intensity: int,
+    min_rt: float = 0.8,
+    **kwargs,
+):
+    """Drop unnecessary columns and add metadata to all scan DF
+
+    Args:
+        fname (Path): Path to all scan CSV
+        inp_spec (InputSpec): Input specification
+        min_intensity(int): Filter data less than this value. MUST BE >= 0
+        min_rt(float, optional): Filter RT less than this value. MUST BE >= 0
+
+    Returns:
+        pd.DataFrame: Pre-processed all scan DF
+    """
+    # Validate filter
+    if not min_rt >= 0.0 or not min_intensity >= 0:
+        raise exc.InvalidFilter()
+
+    # Some defaults with flexibility for kwargs
+    rt_col = kwargs.get("rt_col", "rettime")
+
+    if fname.suffix.lower() == ".mzml":
+        df = waters.mzml(fname, min_intensity=min_intensity)
+    elif "func001" in fname.name:
+        df = waters.func001(fname, min_intensity=min_intensity)
+    else:
+        raise Exception(f"DATA MISSING? - {fname}")
+
+    meta = inp_spec.get_filepath_info(fname)
+    df["organism"] = meta["organism"]
+    df["isotope"] = meta["isotope"]
+    df["condition"] = f'{meta["condition"]}-{meta["replicate"]}'
+
+    return df[df[rt_col] > min_rt].copy()
 
 
 def blank_subtract(blank_df, df, config, inplace=True):
@@ -264,9 +296,8 @@ def isotope_slicer(
     return results
 
 
-def mark_func(df, results):
+def mark_scans(df, results):
     """Marks isotope analysis DF"""
-    # data = df.copy()
     data = []
     seen = set()
     # for e_id, marks in results.items():
@@ -289,6 +320,24 @@ def mark_func(df, results):
     return df1[-df1["exp_id"].isna()].copy()
 
 
+def add_scan_window(feature_df: pd.DataFrame, scan_df: pd.DataFrame, scanwindow: int):
+    """For each feature find closest scan index to rettime in scan_df, then add window"""
+    df = feature_df.copy()
+    lowscan = []
+    highscan = []
+    for _, row in df.iterrows():
+        closest = scan_df.iloc[(scan_df["rettime"] - row.rettime).abs().argsort()[0]]
+        low, high = closest.scanindex - scanwindow, closest.scanindex + scanwindow
+        lowscan.append(low)
+        highscan.append(high)
+    df["lowscan"] = lowscan
+    df["highscan"] = highscan
+    return df
+
+
+############################
+##      Analyze
+############################
 def calc_rep_stats(df, exp_id, iso, cond, min_scans=3):
     data = []
 
@@ -332,18 +381,13 @@ def aggregate_results(df):
     )
 
 
-def get_featurelist(source_dir: Path, exp_name: str):
-    all_features_csv = source_dir / f"{exp_name}_all_features.csv"
-    return pd.read_csv(all_features_csv)
-
-
-def conf_test(t, p, alpha=0.05):
+def confidence_test(t, p, alpha=0.05):
     # Simple p-test plus negative t-score (slope larger than M0)
     # Use this do define labelled/enriched
     return p <= alpha and t < 0.0
 
 
-def get_summary_df(features):
+def generate_summary_df(features):
     temp = features[["exp_id", "rettime", "precmz", "precz"]].copy().set_index("exp_id")
     # Sort by ExpID
     temp["indexnumber"] = [int(i.split("_")[-1]) for i in temp.index]
@@ -397,7 +441,7 @@ def summarize_labels(data_dir, features, conditions):
     data_dir = Path(data_dir)
     print("Summarizing data")
     # New dataframe for data
-    df = get_summary_df(features)
+    df = generate_summary_df(features)
     idxs = list(df.index)
     for cond in conditions:
         df = df.assign(**condition_stats(data_dir, idxs, cond))
@@ -455,7 +499,7 @@ def run_label_analysis(df, cond, out_dir):
                 equal_var=False,
                 nan_policy="omit",
             )
-            labelled = conf_test(t, p, alpha=0.05)
+            labelled = confidence_test(t, p, alpha=0.05)
             indx = labelled_ratio.index.values
             df.loc[indx, "labelled"] = labelled
             df.loc[indx, "pval"] = p

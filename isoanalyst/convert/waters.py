@@ -57,7 +57,7 @@ def mzml(file_path: Union[str, Path], min_intensity: int = 600):
 
         # Print import progress. Useful because importing large mzML files can be slow.
         if spec.index % 100 == 0 and spec.index > 0:
-            print("Completed import of scan " + str(spec.ID))
+            print(f"{file_path.name} - Completed import of scan " + str(spec.ID))
 
     return pd.DataFrame(input_data, columns=headers)
 

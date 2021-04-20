@@ -3,17 +3,14 @@ from pathlib import Path
 from typing import Union
 
 
-def feature_list(file_path: Union[str, Path], scan_rate: float) -> pd.DataFrame:
-    df = pd.read_csv(
-        file_path,
-        usecols=[1, 2, 3, 4],
-        names=["precmz", "rettime", "RtStart", "RtEnd"],
-        skiprows=1,  # Skip MzMine Headers
+def feature_list(file_path: Union[str, Path]) -> pd.DataFrame:
+    ### ADD A SCAN WINDOW AROUND CENTER SCAN DURING SCRAPE
+    df = pd.read_csv(file_path, usecols=["row m/z", "row retention time"])
+    df.rename(
+        columns={"row m/z": "precmz", "row retention time": "rettime"}, inplace=True
     )
-    print(df.head())
-
-
-if __name__ == "__main__":
-    feature_list(
-        r"Z:\Linington\working\isoanalyst_example\generalized\feature_lists\20180409_BLANK_M24.csv"
-    )
+    df["sample"] = file_path.name
+    # Have to assume that MzMine features are all Z=1
+    # because it does not properly return charge data...
+    df["precz"] = 1
+    return df

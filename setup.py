@@ -1,8 +1,9 @@
 from setuptools import setup
+from isoanalyst import VERSION
 
 setup(
     name="isoanalyst",
-    version="0.1.0",
+    version=VERSION,
     packages=["isoanalyst"],
     install_requires=[
         "click",

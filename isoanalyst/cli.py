@@ -6,6 +6,7 @@ from typing import Optional
 
 import click
 
+from isoanalyst import VERSION
 import isoanalyst.core as core
 from isoanalyst.config import get_config, CONFIG
 from isoanalyst.input_spec import InputSpec
@@ -14,7 +15,7 @@ from isoanalyst.input_spec import InputSpec
 def common_options(f):
     options = [
         click.option(
-            "--config_file",
+            "--configfile",
             help="Config file input",
             type=click.Path(exists=True),
             required=False,
@@ -44,11 +45,19 @@ def gt_zero(ctx, param, value):
         raise click.BadParameter(f"{param} must be greater than 0.")
 
 
+def gte_zero(ctx, param, value):
+    try:
+        assert value >= 0
+        return value
+    except AssertionError:
+        raise click.BadParameter(f"{param} must be greater than or equal to 0.")
+
+
 ############################
 ##      CLI Definition
 ############################
 @click.group()
-@click.version_option(version="0.1.0")
+@click.version_option(version=VERSION)
 def cli():
     """Isoanalyst CLI entrypoint
 
@@ -70,7 +79,7 @@ def cli():
 ############################
 @cli.command("validate")
 @common_options
-def run_validate(name: str, input_specification: Path, config_file: Optional[Path]):
+def run_validate(name: str, input_specification: Path, configfile: Optional[Path]):
     click.echo(f"Running validation for {name} on {input_specification}")
     spec = InputSpec.from_csv(input_specification)
     try:
@@ -128,7 +137,7 @@ def run_validate(name: str, input_specification: Path, config_file: Optional[Pat
 def run_prep(
     name: str,
     input_specification: Path,
-    config_file: Optional[Path],
+    configfile: Optional[Path],
     jobs: int,
     blank_remove: bool,
     minreps: int,
@@ -138,7 +147,7 @@ def run_prep(
 
     click.echo(f"Running prep for {name} using {input_specification}")
     spec = InputSpec.from_csv(input_specification)
-    config = get_config(config_file, minreps=minreps, mztol=mztol, rttol=rttol)
+    config = get_config(configfile, minreps=minreps, mztol=mztol, rttol=rttol)
     source_dir = Path(name.replace(" ", "_"))
     core.generate_featurelist(
         input_spec=spec,
@@ -155,6 +164,12 @@ def run_prep(
 ############################
 @cli.command("scrape")
 @common_options
+@click.option(
+    "--restart/--no-restart",
+    default=False,
+    show_default=True,
+    help="Force restart scraping (reloads all data) instead of applying new threshold",
+)
 @click.option(
     "--minreps",
     type=int,
@@ -190,9 +205,9 @@ def run_prep(
 @click.option(
     "--minintensity",
     type=int,
-    default=600,
+    default=0,
     show_default=True,
-    callback=gt_zero,
+    callback=gte_zero,
     help="Minimum intensity threshold for data",
 )
 @click.option(
@@ -202,6 +217,14 @@ def run_prep(
     show_default=True,
     callback=gt_zero,
     help="Ignores data before minimum RT (minutes)",
+)
+@click.option(
+    "--scanwindow",
+    type=int,
+    default=10,
+    show_default=True,
+    callback=gt_zero,
+    help="Number of scans to consider for isotope alignment. This only applies if you data is missing scan ranges.",
 )
 @click.option(
     "--jobs",
@@ -214,18 +237,20 @@ def run_prep(
 def run_scrape(
     name: str,
     input_specification: Path,
-    config_file: Optional[Path],
+    configfile: Optional[Path],
     jobs: int,
     minscans: int,
+    scanwindow: int,
     minreps: int,
     mztol: float,
     rttol: float,
     minintensity: int,
     minrt: float,
+    restart: bool,
 ):
     click.echo(f"Running scrape for {name} using {input_specification}")
     spec = InputSpec.from_csv(input_specification)
-    config = get_config(config_file, minreps=minreps, mztol=mztol, rttol=rttol)
+    config = get_config(configfile, minreps=minreps, mztol=mztol, rttol=rttol)
     source_dir = Path(name.replace(" ", "_"))
     core.isotope_scraper(
         input_spec=spec,
@@ -233,9 +258,11 @@ def run_scrape(
         exp_name=name,
         n_jobs=jobs,
         min_scans=minscans,
+        scanwindow=scanwindow,
         min_intensity=minintensity,
         min_rt=minrt,
         config=config,
+        restart=restart,
     )
 
 
@@ -271,7 +298,7 @@ def run_scrape(
 def run_analyze(
     name: str,
     input_specification: Path,
-    config_file: Optional[Path],
+    configfile: Optional[Path],
     jobs: int,
     minscans: int,
     minconditions: int,

@@ -65,7 +65,7 @@ def generate_featurelist(
     all_cond_df.reset_index(inplace=True, drop=True)
     dereplicator.group_features(
         all_cond_df, exp_name, "exp_id", config=config
-    )  # final grouping - exp_id used for func001 munging
+    )  # final grouping - exp_id used for scan munging
     all_cond_df.to_csv(source_dir.joinpath(f"{exp_name}_all_features.csv"), index=False)
     return all_cond_df
 
@@ -76,10 +76,11 @@ def isotope_scraper(
     exp_name: str,
     config: Dict,
     min_scans: int,
+    scanwindow: int,
     min_intensity: int,
     min_rt: float,
     n_jobs: int,
-    restart: bool = True,  # retry by default
+    restart: bool,
 ):
     """Scrape all the isotope data for all ions in the all scan data"""
     conditions = input_spec.get_conditions()
@@ -90,24 +91,40 @@ def isotope_scraper(
     out_dir = source_dir.joinpath("all_scan_data")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    def run_isoslicer(cond, restart=restart):
+    def run_isoslicer(cond, restart=restart, features=features):
         outfile = out_dir.joinpath(f"all_ions_{cond}.csv")
         if not restart and outfile.exists():
             print(f"{cond} already processed")
             return
 
-        # add replicate func files for current condition
-        c_funcs = input_spec.get_scan_filepaths(cond)
-        c_dfs = (
-            utils.prep_scan(
-                Path(f), input_spec, min_intensity=min_intensity, min_rt=min_rt
+        # add replicate scan files for current condition
+        c_scans = input_spec.get_scan_filepaths(cond)
+        scanfile = out_dir.joinpath(f"all_scans_{cond}.csv")
+        if not restart and scanfile.exists():
+            print(f"Loading all scan file - {scanfile}")
+            scan_df = pd.read_csv(scanfile)
+        else:
+            c_dfs = (
+                utils.prep_scan(
+                    Path(f),
+                    input_spec,
+                    min_intensity=min_intensity,
+                    min_rt=min_rt,
+                )
+                for f in c_scans
             )
-            for f in c_funcs
-        )
+            # merged data frame of all scans for the given condition
+            print(f"Combining files for {cond}")
+            scan_df = utils.combine_dfs(c_dfs)
+            # Save checkpoint DF
+            print(f"Saving all scan file - {scanfile}")
+            scan_df.to_csv(scanfile, index=False)
 
-        # merged data frame of all func001s for the given condition 'c'
-        print(f"Combining files for {cond}")
-        func_df = utils.combine_dfs(c_dfs)
+        # If no scan ranges in feature_df, we need to add them
+        if not "lowscan" in features.columns:
+            # Make a copy for parallel safety
+            print(f"Assigning scan range window to feature list for {cond}")
+            features = utils.add_scan_window(features, scan_df, scanwindow=scanwindow)
 
         len_uni = len(features.exp_id.unique())
         exps = features.groupby("exp_id")
@@ -121,11 +138,11 @@ def isotope_scraper(
 
             mz, low_scan, high_scan = utils.calc_exp(g)
             #  function 'iso_slicer' slices relevant isotope data for a given mz and all its isotopomers
-            #  within given scan range in given func file
+            #  within given scan range in given scan file
             return (
                 idx,
                 utils.isotope_slicer(
-                    func_df,
+                    scan_df,
                     mz,
                     low_scan,
                     high_scan,
@@ -139,7 +156,7 @@ def isotope_scraper(
         )
 
         print(f"Finished collecting ions for {cond}")
-        res_df = utils.mark_func(func_df, to_mark)
+        res_df = utils.mark_scans(scan_df, to_mark)
 
         # write iso_scan_data to a file for that condition
         res_df.to_csv(outfile)

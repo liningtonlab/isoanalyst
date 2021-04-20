@@ -48,19 +48,27 @@ If you want to re-run an analysis you can either type `snakemake --j1 -F` or rem
 
 ### Data Requirements
 
-#### 1. Scan Data
+
+#### 1. Feature lists
+
+Generic CSV tabular inputs minimally with `["Sample", "PrecMz", "PrecZ", "PrecIntensity", "RetTime", "ScanLowRange", "ScanHighRange"]` column headers. These are compatible msExpress CPPIS files.
+
+Working on MzMine2 import pipeline.
+
+MzMine outputs only require the `["row m/z", "row retention time"]` columns. 
+
+__Question:__ Intensity? Use MzMine Peak Area?
+
+The program will then set a window of 10 scans on both sides of the center scan index detected during all scan importing.
+
+
+#### 2. Scan Data
 
 Generic CSV tabular inputs minimally with `["FunctionScanIndex", "RT", "MZ", "Intensity"]` column headers.
 
 Can import func0001 CSVs from msExpress.
 
 Can import mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msconvert.html).
-
-#### 2. Feature lists
-
-Generic CSV tabular inputs minimally with `["Sample", "PrecMz", "PrecZ", "PrecIntensity", "RetTime", "ScanLowRange", "ScanHighRange"]` column headers.
-
-Working on MzMine2 import pipeline.
 
 ### Development and Testing
 

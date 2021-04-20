@@ -163,8 +163,13 @@ def collapse_data_rows(
         data["bin_info"] = json.dumps(bin_info)
 
     data["samples"] = "|".join(unique)
-    data["lowscan"] = df["scanlowrange"].min()
-    data["highscan"] = df["scanhighrange"].max()
+    # Detected the scan ranges when CPPIS data is imported
+    try:
+        data["lowscan"] = df["scanlowrange"].min()
+        data["highscan"] = df["scanhighrange"].max()
+    except KeyError:
+        pass
+
     data["rep_count"] = len(unique)
     data["rettime"] = round(data["rettime"], 3)
     return data
