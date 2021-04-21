@@ -2,14 +2,13 @@
 # default rt window = 0.03 min
 # default precmz ppm = 10 ppm
 # configurable with --rttol and --mztol, respectively
-CONDITIONS = ["ACE", "MET", "GLU", "PROP"]
-SECONDARY = ["D0", "D3"]
-INPUT = "SERY/"
-NAME = "SERY"
+NAME = "EXAMPLE"
+INPUT_SPEC = "input_specification.csv"
 TOL = 10
 MINSCAN_SCRAPE = 1
 MINSCAN_ANALYZE = 3
 MINCOND = 1
+MININTENSITY = 500
 
 rule all:
   input: "analyze.done"
@@ -17,14 +16,14 @@ rule all:
 rule validate:
   output: touch("validate.done")
   shell:
-    "isoanalyst validate {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME}"
+    "isoanalyst validate -n {NAME} -i {INPUT_SPEC}"
 
 # default minreps = 3
 rule prep:
   input: "validate.done"
   output: touch("prep.done")
   shell:
-    "isoanalyst prep {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --mztol {TOL}"
+    "isoanalyst prep -n {NAME} -i {INPUT_SPEC} --mztol {TOL}"
 
 # default minreps = 3
 # `--retry` by default because assuming changes to config
@@ -33,11 +32,11 @@ rule scrape:
   input: "prep.done"
   output: touch("scrape.done")
   shell:
-    "isoanalyst scrape {INPUT} {CONDITIONS} -s {SECONDARY} --retry -n {NAME} --mztol {TOL} --minscans {MINSCAN_SCRAPE}"
+    "isoanalyst scrape -n {NAME} -i {INPUT_SPEC} --mztol {TOL} --minscans {MINSCAN_SCRAPE} --minintensity {MININTENSITY} --restart"
 
 # default minconditions = 1
 rule analyze:
   input: "scrape.done"
   output: touch("analyze.done")
   shell:
-    "isoanalyst analyze {INPUT} {CONDITIONS} -s {SECONDARY} -n {NAME} --minconditions {MINCOND} --minscans {MINSCAN_ANALYZE}"
+    "isoanalyst analyze -n {NAME} -i {INPUT_SPEC} --minconditions {MINCOND} --minscans {MINSCAN_ANALYZE}"
