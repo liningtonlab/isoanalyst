@@ -1,37 +1,40 @@
-## Welcome to GitHub Pages
+## Welcome to IsoAnalyst
 
-You can use the [editor on GitHub](https://github.com/liningtonlab/isoanalyst/edit/main/docs/index.md) to maintain and preview the content for your website in Markdown files.
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+## CLI Options
 
-### Markdown
+## Input Specification
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+## Data Requirements
 
-```markdown
-Syntax highlighted code block
+#### 1. Feature lists
 
-# Header 1
-## Header 2
-### Header 3
+Generic CSV tabular inputs minimally with `["Sample", "PrecMz", "PrecZ", "PrecIntensity", "RetTime", "ScanLowRange", "ScanHighRange"]` column headers. These are compatible msExpress CPPIS files.
 
-- Bulleted
-- List
+Working on MzMine2 import pipeline.
 
-1. Numbered
-2. List
+MzMine outputs only require the `["row m/z", "row retention time"]` columns. 
 
-**Bold** and _Italic_ and `Code` text
+__Question:__ Intensity? Use MzMine Peak Area?
 
-[Link](url) and ![Image](src)
-```
+The program will then set a window of 10 scans on both sides of the center scan index detected during all scan importing.
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
 
-### Jekyll Themes
+#### 2. Scan Data
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/liningtonlab/isoanalyst/settings/pages). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
+Generic CSV tabular inputs minimally with `["FunctionScanIndex", "RT", "MZ", "Intensity"]` column headers.
 
-### Support or Contact
+Can import func0001 CSVs from msExpress.
 
-Having trouble with Pages? Check out our [documentation](https://docs.github.com/categories/github-pages-basics/) or [contact support](https://support.github.com/contact) and we’ll help you sort it out.
+Can import mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msconvert.html).
+
+### Development and Testing
+
+To run the tests, you must first install dev dependencies `conda install pytest`.
+
+
+#### Data Collection Recommendation
+
+Not supported for DDA.
+
+Either DIA with interleaved scans or MS1 only.
