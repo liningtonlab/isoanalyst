@@ -1,6 +1,6 @@
 # IsoAnalyst
 
-__TODO: Add program synoposis__
+IsoAnalyst is a mass spectrometry (MS) metabolomics data analysis program designed to determine the number of stable isotopically labeled (SIL) tracers incorporated into metabolites across parallel SIL tracer experiments. Unlabeled control samples are required for each SIL tracer used, and separate pre-processed datasets from both labeled and unlabeled samples are required input. IsoAnalyst compares isotopologue distributions between MS features in the unlabeled and labeled datasets and generates a summary file containing the number of heavy isotopes incorporated into every MS feature in each SIL condition.
 
 Full program documentation is available at [liningtonlab.github.io/isoanalyst/](https://liningtonlab.github.io/isoanalyst/).
 
