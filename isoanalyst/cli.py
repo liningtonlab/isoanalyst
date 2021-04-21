@@ -14,12 +14,12 @@ from isoanalyst.input_spec import InputSpec
 ## Helper functions
 def common_options(f):
     options = [
-        click.option(
-            "--configfile",
-            help="Config file input",
-            type=click.Path(exists=True),
-            required=False,
-        ),
+        # click.option(
+        #     "--configfile",
+        #     help="Config file input",
+        #     type=click.Path(exists=True),
+        #     required=False,
+        # ),
         click.option(
             "--name",
             "-n",
@@ -79,7 +79,9 @@ def cli():
 ############################
 @cli.command("validate")
 @common_options
-def run_validate(name: str, input_specification: Path, configfile: Optional[Path]):
+def run_validate(
+    name: str, input_specification: Path, configfile: Optional[Path] = None
+):
     click.echo(f"Running validation for {name} on {input_specification}")
     spec = InputSpec.from_csv(input_specification)
     try:
@@ -137,12 +139,12 @@ def run_validate(name: str, input_specification: Path, configfile: Optional[Path
 def run_prep(
     name: str,
     input_specification: Path,
-    configfile: Optional[Path],
     jobs: int,
     blank_remove: bool,
     minreps: int,
     mztol: int,
     rttol: int,
+    configfile: Optional[Path] = None,
 ):
 
     click.echo(f"Running prep for {name} using {input_specification}")
@@ -237,7 +239,6 @@ def run_prep(
 def run_scrape(
     name: str,
     input_specification: Path,
-    configfile: Optional[Path],
     jobs: int,
     minscans: int,
     scanwindow: int,
@@ -247,6 +248,7 @@ def run_scrape(
     minintensity: int,
     minrt: float,
     restart: bool,
+    configfile: Optional[Path] = None,
 ):
     click.echo(f"Running scrape for {name} using {input_specification}")
     spec = InputSpec.from_csv(input_specification)
@@ -298,10 +300,10 @@ def run_scrape(
 def run_analyze(
     name: str,
     input_specification: Path,
-    configfile: Optional[Path],
     jobs: int,
     minscans: int,
     minconditions: int,
+    configfile: Optional[Path] = None,
 ):
     click.echo(f"Running analysis for {name} using {input_specification}")
     spec = InputSpec.from_csv(input_specification)
