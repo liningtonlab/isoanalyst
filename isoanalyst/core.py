@@ -47,7 +47,11 @@ def generate_featurelist(
     # peaks in blanks to subtract later
     # This should not break in the event that there are no blanks
     # but the printing may be misleading
-    blanks = do_munge_featurelist("blank")
+    if input_spec.get_feature_filepaths("blank"):
+        blanks = do_munge_featurelist("blank")
+    else:
+        print("No blanks found")
+        blank_remove = False
 
     # Run pre-processing on conditions in separate processes
     conditions = input_spec.get_conditions()
@@ -196,9 +200,13 @@ def isotope_label_detector(
             if len(res) < 1:
                 continue
             data.extend(res)
-        res_df = utils.aggregate_results(pd.DataFrame(data))
-        res_df.to_csv(out_file, index=False)
-        utils.run_label_analysis(res_df, cond, out_dir)
+        if data:
+            agg_df = pd.DataFrame(data)
+            res_df = utils.aggregate_results(agg_df)
+            res_df.to_csv(out_file, index=False)
+            utils.run_label_analysis(res_df, cond, out_dir)
+        else:
+            print(f"No labels to detect for {cond}")
 
     # Run processing of each condition in separate process
     joblib.Parallel(n_jobs=n_jobs)(
