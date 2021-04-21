@@ -3,12 +3,12 @@
 # default precmz ppm = 10 ppm
 # configurable with --rttol and --mztol, respectively
 NAME = "EXAMPLE"
-INPUT_SPEC = "input_specification.csv"
-TOL = 10
+INPUT_SPEC = "input_spec.csv"
+TOL = 10 # PPM
 MINSCAN_SCRAPE = 1
-MINSCAN_ANALYZE = 3
+MINSCAN_ANALYZE = 2
 MINCOND = 1
-MININTENSITY = 500
+MININTENSITY = 0
 
 rule all:
   input: "analyze.done"
@@ -23,7 +23,7 @@ rule prep:
   input: "validate.done"
   output: touch("prep.done")
   shell:
-    "isoanalyst prep -n {NAME} -i {INPUT_SPEC} --mztol {TOL}"
+    "isoanalyst prep -n {NAME} -i {INPUT_SPEC} --mztol {TOL} --minreps 1 --no-blank-remove"
 
 # default minreps = 3
 # `--retry` by default because assuming changes to config
