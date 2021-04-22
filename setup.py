@@ -4,7 +4,7 @@ from isoanalyst import VERSION
 setup(
     name="isoanalyst",
     version=VERSION,
-    packages=["isoanalyst"],
+    packages=["isoanalyst", "isoanalyst.convert"],
     install_requires=[
         "click",
     ],
