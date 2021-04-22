@@ -120,7 +120,19 @@ def munge_featurelist(inp_spec: InputSpec, cond: str, out_dir: Path, config: Dic
     # Will be editted inplace along the way
     dfs = [prep_featurefile(Path(f)) for f in replicates]
     print(f"Combining DFs for {cond}")
-    df = combine_dfs(dfs)
+    try:
+        df = combine_dfs(dfs)
+    except ValueError:
+        print(f"No features found for {cond}")
+        # create empty dataframe
+        df = pd.DataFrame(columns=["precmz", "rettime", "precz", "sample"])
+        df.to_csv(out_dir.joinpath("all_ions_sorted.csv"), index=False)
+        averaged = pd.DataFrame(
+            columns=["rettime", "precmz", "precz", "samples", "rep_count"]
+        )
+        averaged.to_csv(out_dir.joinpath("all_ions_averaged.csv"), index=False)
+        return df
+
     df.to_csv(out_dir.joinpath("all_ions_sorted.csv"), index=False)
 
     # R-tree based replicate comparison

@@ -47,7 +47,11 @@ def generate_featurelist(
     # peaks in blanks to subtract later
     # This should not break in the event that there are no blanks
     # but the printing may be misleading
-    blanks = do_munge_featurelist("blank")
+    if input_spec.get_feature_filepaths("blank"):
+        blanks = do_munge_featurelist("blank")
+    else:
+        print("No blanks found")
+        blank_remove = False
 
     # Run pre-processing on conditions in separate processes
     conditions = input_spec.get_conditions()
@@ -80,7 +84,6 @@ def isotope_scraper(
     min_intensity: int,
     min_rt: float,
     n_jobs: int,
-    restart: bool,
 ):
     """Scrape all the isotope data for all ions in the all scan data"""
     conditions = input_spec.get_conditions()
@@ -91,16 +94,13 @@ def isotope_scraper(
     out_dir = source_dir.joinpath("all_scan_data")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    def run_isoslicer(cond, restart=restart, features=features):
+    def run_isoslicer(cond, features=features):
         outfile = out_dir.joinpath(f"all_ions_{cond}.csv")
-        if not restart and outfile.exists():
-            print(f"{cond} already processed")
-            return
 
         # add replicate scan files for current condition
         c_scans = input_spec.get_scan_filepaths(cond)
         scanfile = out_dir.joinpath(f"all_scans_{cond}.csv")
-        if not restart and scanfile.exists():
+        if scanfile.exists():
             print(f"Loading all scan file - {scanfile}")
             scan_df = pd.read_csv(scanfile)
         else:
@@ -196,9 +196,13 @@ def isotope_label_detector(
             if len(res) < 1:
                 continue
             data.extend(res)
-        res_df = utils.aggregate_results(pd.DataFrame(data))
-        res_df.to_csv(out_file, index=False)
-        utils.run_label_analysis(res_df, cond, out_dir)
+        if data:
+            agg_df = pd.DataFrame(data)
+            res_df = utils.aggregate_results(agg_df)
+            res_df.to_csv(out_file, index=False)
+            utils.run_label_analysis(res_df, cond, out_dir)
+        else:
+            print(f"No labels to detect for {cond}")
 
     # Run processing of each condition in separate process
     joblib.Parallel(n_jobs=n_jobs)(

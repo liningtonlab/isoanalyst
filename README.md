@@ -1,6 +1,11 @@
 # IsoAnalyst
 
-IsoAnalyst is a mass spectrometry (MS) metabolomics data analysis program designed to determine the number of stable isotopically labeled (SIL) tracers incorporated into metabolites across parallel SIL tracer experiments. Unlabeled control samples are required for each SIL tracer used, and separate pre-processed datasets from both labeled and unlabeled samples are required input. IsoAnalyst compares isotopologue distributions between MS features in the unlabeled and labeled datasets and generates a summary file containing the number of heavy isotopes incorporated into every MS feature in each SIL condition.
+IsoAnalyst is a mass spectrometry (MS) metabolomics data analysis program designed to determine
+the number of stable isotopically labeled (SIL) tracers incorporated into metabolites across parallel
+SIL tracer experiments. Unlabeled control samples are required for each SIL tracer used, and separate 
+pre-processed datasets from both labeled and unlabeled samples are required input. IsoAnalyst compares
+isotopologue distributions between MS features in the unlabeled and labeled datasets and generates a 
+summary file containing the number of heavy isotopes incorporated into every MS feature in each SIL condition.
 
 Full program documentation is available at [liningtonlab.github.io/isoanalyst/](https://liningtonlab.github.io/isoanalyst/).
 
@@ -79,21 +84,32 @@ Full documentation on input specification is available [in the documentation @ l
 
 #### Example Input Specification
 
-__TODO: Replace with example_workflow input spec__
-
-| filepath                                      | organism | type | isotope | element | condition | replicate |
-| --------------------------------------------- | -------- | ---- | ------- | ------- | --------- | --------- |
-| tests/test_files/blanks_rep1.csv              | ORG1     | f    |         |         | BLANK     | 1         |
-| tests/test_files/blanks_rep2.csv              | ORG1     | f    |         |         | BLANK     | 2         |
-| tests/test_files/feature_list_rep1.csv        | ORG1     | f    | 12      | C       | COND1     | 1         |
-| tests/test_files/feature_list_rep2.csv        | ORG1     | f    | 12      | C       | COND1     | 2         |
-| tests/test_files/feature_list_rep3.csv        | ORG1     | f    | 12      | C       | COND1     | 3         |
-| tests/test_files/full_scan_nat_rep1.mzml      | ORG1     | s    | 12      | C       | COND1     | 1         |
-| tests/test_files/full_scan_nat_rep2.mzml      | ORG1     | s    | 12      | C       | COND1     | 2         |
-| tests/test_files/full_scan_nat_rep3.mzml      | ORG1     | s    | 12      | C       | COND1     | 3         |
-| tests/test_files/full_scan_labelled_rep1.mzml | ORG1     | s    | 13      | C       | COND1     | 1         |
-| tests/test_files/full_scan_labelled_rep2.mzml | ORG1     | s    | 13      | C       | COND1     | 2         |
-| tests/test_files/full_scan_labelled_rep3.mzml | ORG1     | s    | 13      | C       | COND1     | 3         |
+| filepath                                                                          | organism | type | element | isotope | condition | replicate |
+| --------------------------------------------------------------------------------- | -------- | ---- | ------- | ------- | --------- | --------- |
+| feature_lists/20180409_RLUS135312ACED0-1_seen.mzml_chromatograms_deconvoluted.csv | RLUS1353 | f    | C       | 12      | ACE       | 1         |
+| feature_lists/20180409_RLUS135312ACED0-2_seen.mzml_chromatograms_deconvoluted.csv | RLUS1353 | f    | C       | 12      | ACE       | 2         |
+| feature_lists/20180409_RLUS135312ACED0-3_seen.mzml_chromatograms_deconvoluted.csv | RLUS1353 | f    | C       | 12      | ACE       | 3         |
+| feature_lists/20180409_RLUS135312ACED0-4_seen.mzml_chromatograms_deconvoluted.csv | RLUS1353 | f    | C       | 12      | ACE       | 4         |
+| feature_lists/20180409_RLUS135314GLUD0-1_seen.mzml_chromatograms_deconvoluted.csv | RLUS1353 | f    | C       | 12      | GLU       | 1         |
+| feature_lists/20180409_RLUS135314GLUD0-2_seen.mzml_chromatograms_deconvoluted.csv | RLUS1353 | f    | C       | 12      | GLU       | 2         |
+| feature_lists/20180409_RLUS135314GLUD0-3_seen.mzml_chromatograms_deconvoluted.csv | RLUS1353 | f    | C       | 12      | GLU       | 3         |
+| feature_lists/20180409_RLUS135314GLUD0-4_seen.mzml_chromatograms_deconvoluted.csv | RLUS1353 | f    | C       | 12      | GLU       | 4         |
+| mzmls/20180409_RLUS135312ACED0-1_seen.mzml                                        | RLUS1353 | s    | C       | 12      | ACE       | 1         |
+| mzmls/20180409_RLUS135312ACED0-2_seen.mzml                                        | RLUS1353 | s    | C       | 12      | ACE       | 2         |
+| mzmls/20180409_RLUS135312ACED0-3_seen.mzml                                        | RLUS1353 | s    | C       | 12      | ACE       | 3         |
+| mzmls/20180409_RLUS135312ACED0-4_seen.mzml                                        | RLUS1353 | s    | C       | 12      | ACE       | 4         |
+| mzmls/20180409_RLUS135314GLUD0-1_seen.mzml                                        | RLUS1353 | s    | C       | 12      | GLU       | 1         |
+| mzmls/20180409_RLUS135314GLUD0-2_seen.mzml                                        | RLUS1353 | s    | C       | 12      | GLU       | 2         |
+| mzmls/20180409_RLUS135314GLUD0-3_seen.mzml                                        | RLUS1353 | s    | C       | 12      | GLU       | 3         |
+| mzmls/20180409_RLUS135314GLUD0-4_seen.mzml                                        | RLUS1353 | s    | C       | 12      | GLU       | 4         |
+| mzmls/20180410_RLUS135313ACED0-1_seen.mzml                                        | RLUS1353 | s    | C       | 13      | ACE       | 1         |
+| mzmls/20180410_RLUS135313ACED0-2_seen.mzml                                        | RLUS1353 | s    | C       | 13      | ACE       | 2         |
+| mzmls/20180410_RLUS135313ACED0-3_seen.mzml                                        | RLUS1353 | s    | C       | 13      | ACE       | 3         |
+| mzmls/20180410_RLUS135313ACED0-4_seen.mzml                                        | RLUS1353 | s    | C       | 13      | ACE       | 4         |
+| mzmls/20180410_RLUS135315GLUD0-1_seen.mzml                                        | RLUS1353 | s    | N       | 15      | GLU       | 1         |
+| mzmls/20180410_RLUS135315GLUD0-2_seen.mzml                                        | RLUS1353 | s    | N       | 15      | GLU       | 2         |
+| mzmls/20180410_RLUS135315GLUD0-3_seen.mzml                                        | RLUS1353 | s    | N       | 15      | GLU       | 3         |
+| mzmls/20180410_RLUS135315GLUD0-4_seen.mzml                                        | RLUS1353 | s    | N       | 15      | GLU       | 4         |
 
 
 ### Snakemake pipeline

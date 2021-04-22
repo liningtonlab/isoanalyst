@@ -1,0 +1,12 @@
+exp_id,rettime,precmz,precz,ACE_unlabelled,ACE_labelled,ACE_labelled_count,GLU_unlabelled,GLU_labelled,GLU_labelled_count
+EXAMPLE_1,3.739,432.23875,1.0,True,False,0,True,False,0
+EXAMPLE_2,3.737,433.2416,1.0,False,False,0,False,False,0
+EXAMPLE_3,3.7554999999999996,450.30060000000003,1.0,True,True,7,True,True,1
+EXAMPLE_4,3.755,468.31105,1.0,True,True,1,True,True,1
+EXAMPLE_5,3.7554999999999996,469.31415,1.0,False,False,0,False,False,0
+EXAMPLE_6,3.7555,432.2898,1.0,True,True,5,True,True,1
+EXAMPLE_7,3.7554999999999996,451.30435,1.0,False,False,0,False,False,0
+EXAMPLE_8,3.755,452.3069,1.0,False,False,0,False,False,0
+EXAMPLE_9,3.76,433.2911,1.0,False,False,0,False,False,0
+EXAMPLE_10,3.753,448.284,1.0,True,False,0,True,False,0
+EXAMPLE_11,3.777,466.2945,1.0,True,False,0,True,True,1

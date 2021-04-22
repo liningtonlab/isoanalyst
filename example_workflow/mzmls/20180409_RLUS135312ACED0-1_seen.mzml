@@ -1,0 +1,505 @@
+<?xml version='1.0' encoding='utf-8'?>
+<indexedmzML xmlns="http://psi.hupo.org/ms/mzml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.2_idx.xsd">
+  <mzML xmlns="http://psi.hupo.org/ms/mzml" version="1.1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://psi.hupo.org/ms/mzml http://psidev.info/files/ms/mzML/xsd/mzML1.1.0.xsd">
+    <cvList count="2">
+      <cv fullName="PSI-MS" URI="https://raw.githubusercontent.com/HUPO-PSI/psi-ms-CV/master/psi-ms.obo" version="4.1.51" id="PSI-MS"/>
+      <cv fullName="UNIT-ONTOLOGY" URI="http://ontologies.berkeleybop.org/uo.obo" version="releases/2020-03-10" id="UO"/>
+    </cvList>
+    <run id="selected_ions">
+      <spectrumList count="18">
+        <spectrum index="0" defaultArrayLength="2" id="function=1 process=0 scan=23">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.698" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="32">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGBgyI2pcQBSDEymtQ4AEhkCeg==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="24">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjYGB2ZmBgcAYAAawAig==</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="1" defaultArrayLength="27" id="function=1 process=0 scan=496">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.703" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="184">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYACCT1UOjAwMDveZqx2AvAUrWcC0Ar8ImG7YagSmH/QEVYPVvZoCoZuWQMTN/kD05bHUQOSBNEj/SW4wfUBUDEwn7FEB0wueaYPpB1UGEPHHJhB6vjdE/8UgCP9yEkS9TzLEnO+PIeKNLLVg8+epgOkHi03A9IL3gWA6ISi51gEA+qo4gw==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="108">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjYFB0YWCY68zAwAXEcc4MDuxAvgKQfcoJgiWB7L1A/AnIdgbSjkCsDFTzCMi/B8Q2zmDs0AIUiwWyxYH4ixPEzPNALALBDZ3OAOi+E6E=</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="2" defaultArrayLength="20" id="function=1 process=0 scan=497">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.71" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="148">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGB4wPmpyoGBgWGBMFM1mD7NDKYbtgqD6QezjMA0w8YgiPjJJDCtcHoJmD7Qy1IDohOucoNphnsqEP4pEzC9oM67xoGRgcHhYRBE/nISVDwZTDtMYakFm7tOBUwnfHAB0w/yA2sdAOhIKb0=</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="96">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjaHjtzMBg5czgUOfC0LAbyP7uzNCwE0hzAvE7JwYGRyB9B0iDxHyBWNmZ4YCOCwPDI6CYJ5CvDeTzAvkMQLatMwAcaxGU</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="3" defaultArrayLength="28" id="function=1 process=0 scan=498">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.717" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="192">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGB44PupyoEBCC4zV4PpO8Jg+sFvZTDdMMcITCdMc6p2YGRgODAtCCK+MwnMdzibDNFXsRFCd+2E0gfB9IIJLDVg+r4KmH5w3aQGbM6JIDBfQSMZwu8ogqjLbAHTDJyLwHSDyCqovEgtmH9ApRZs734TMF/hkQuYZsgNBNMHahMh/JDkWgcAASU6Jg==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="132">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjYHBzZvCY4Mpw4IALA8NiZwaGN0AsCMS1QMwAxJ+cGBi0gfQVIC0EpDOcGQ5wA9WmODM4yAPpE0BxNaA4jzNDQzeQ9gbid0CxJUD6khNDw2YgbQvEjECs6gwAEWMWUw==</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="4" defaultArrayLength="27" id="function=1 process=0 scan=499">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.724" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="192">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGBoePSxyoGBgWHBeeZqEM1wRxhMP9guAqYbHGXA9IGnyhB6vhGYXrDWqdqBEcjfEQRR37MRon/zQTCd8FykBkQrXFKpAau7ZQKhd7mAxRtOBkH4K5Ig9J1CsPgCrkVg2oFjF0Tdl8Ng+sFWlVqw/GyTWrD6My5gPkNFIISekQiRd0+udQAAHzc9TA==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="128">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjYGByZmgxcWNgCHNlYLjmxMDA7czAwOrC0LAcSDsCcRgQv4HSl5wYFqwAyn0DskWdGQ4ouTAwtAHZV4D65oPUAekcZwYHJqB4KJB/0ZmhQQzI9gOy/Z0BpyUWgQ==</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="5" defaultArrayLength="34" id="function=1 process=0 scan=500">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.731" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="232">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjZGBwuMhc7cDAwNBwkgVMP7DgB9ML7gpD6PfKYFrhkBFEfrsTRHxCEIS/OAnCj1sIphn6N0L4dZvB9IH+gxB1+Rch9hz6WO3ACLQ3naUGRB84o1IDFn9iAqYTnrqA6QfXg8A0w70kiHxEC0ScYRFEXcoRMK2gcQVMH8hlqQWrP6wCphvmGdaCzV9lAuYfeOwCph8UB4LFHT6HQNTNSQTTC+ySax0AdkBMRQ==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="160">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxj+DPDjYHhsTMDwyUnBo/9rgwNDC4MDPeB/FNODA2dQPqFEwMDuzNDgxZQ/AeQrQUUUwNiLiDWd2ZIyHdleLAIKFfmzHAgBEhLAsWLgNgViI2BOB2IFwNxPxB/Aurnc2Z40OvCcCAWqLYeKDYfiCucAbYUHyI=</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="6" defaultArrayLength="40" id="function=1 process=0 scan=501">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.738" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="264">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjZGBwWPS0yoGBgUFh+3MwnaDwGkw3XGKuBtPbWaodGBkYDtwRBtMO+0XA4gm3lMH0g3MqYJphnxFEvZgJmD7w3RnCXxcE5SdD1DVOhNAzNkL0z9oMoScehJibexFiX9JniL5qlhowfVGlBix+ywTMV/jtAqYbbgdB5GuLwXRCdAtE/ttGMP3g5GGIvOcRCD+DpRZsjgBrLYi/YJsKmE6INwbTD46bgOkGFlcwzTA5EEwfYA+FyE9OBNMONsm1DgBiglkn</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="188">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjYJB0ZmD448TA8MuJIWalG4PDVheGjN2uDA13nRkaylwYGHSA8hZA2gNIGwLFtgJpVyA2dmY4ABIH6mtoBIpPBopFAXERULzQjeHFclcGBicXhgMSQDU3gGp+A+V4gZgTiNcBcSoQX3FicJABymsD2WHODB6dQHsDXBgcNgPF9IFius4AUXglWw==</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="7" defaultArrayLength="32" id="function=1 process=0 scan=502">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.746" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="216">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjZGBwuMhc7cAIpJexQOj7wtUODAwMC7aJgGkGBhUwrXDaCEw3XDeBqDsbBFG3MgnCn7sRQs/cDBZPmLUTTDu0HATTB+ovQuSrH0Lo3scQupKlBiT/4IIKhL5nAqYXPHMB0wpXgiDiL0PAdIL4ETB9oPcSmG44wFILVr9WBUw73DCB8L+5gGmFvkAwncAaChEPT4So40iudQAAkFZEQQ==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="164">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjqJjgxnBgkivDhXmuDA23XBgSVrkwHBBzYWD44sTAcAaIHzgxOHgA+XzODAyczgwNk4G4Ach+AZTjBtLWzgzS3O4MIbpuDA+euDA48ADVbgKq2QiUe+TE0NDhzODgABSzcGYQkATaZezCMCHYlYGh0xkkBgC3GR/1</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="8" defaultArrayLength="33" id="function=1 process=0 scan=503">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.753" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="224">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjZGBwuMZc7cDAwHBgPguEfigMph8sFwHTDJeVwXTCDBUwvWCtEZhuOOQE4a8MAtMKJxsh9PIJ1Q6MQHPTJ0LMmbMRIr7pIER93kWIeSZPIOa3sdSA1Z9XqQHxHW6YgOkHj1zAdMLVIIj4jxAw3fC7CMIvaIHQDlPAtMK3w2B6QSdLLVj/HhUwveC0IZhuOGcC4f9yqQXbVx0I5jvwhNY6AACqGEeJ</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="160">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxj8GFwY+hoc2VgeOnCcKDUhaGB14WBQc+Z4YAMkI50ZmBYBsQ/nBgYHgDxNSeGho9A/kwgrgXiM0Cx+c4MG8TdGUr83Bge3ATqqXBmaDgJlFMGYmYgFgLiX0B9N4DiL4DsE0A9Xs4MS4LcGBh+AsU6XQGrNSJh</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="9" defaultArrayLength="30" id="function=1 process=0 scan=504">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.76" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="200">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGBouMBc7cDAwKCwnAVML7grDKYfzBKB0M+VIfIHVCDyK43AdENrEER+zkYIv/QgmD5Q/xRCV7PUgPXtFAHTDOdUwPSCBjUw/eCRCYT/wgVMJzwPgqjjDoXoi0mpcWAEmhPUApGvZ6kFizeLgGmGXSpgOuGqCZh+8NMFQlcEQuSFQsH0gpmJEHGz5FoHAM/0PsE=</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="156">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxj+NHoyvCh0JWhwcKF4cBJFwaGD04MDe3ODA46QLaYMwODMRArA/ETJwaGiUD6mxPDSxF3BoZ3TgxHLN0YPgi6MjAwA9U+Acr9A6q55sRwIAvI5wLy2YB0mjNDTYQbQ8NTZ4YD6UC1PEBxHWcAmvAeHg==</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="10" defaultArrayLength="29" id="function=1 process=0 scan=505">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.767" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="196">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGB4cI652oEBCGawQOgHwmD6wHwRML2gXQXCX28Eph9MDQLTCnnREPX9F8F0Qv1jiLpclhqwunMqYLphqzaYXnDfBEwn3HGB0GeCwDSDQChEnXwYRB9vC0Q91xEw7dDAUgsWbxYB0woWohD+URUw3VBjVOvACFT3ywXMP7AwEEwncIaCaYa2xFoHAM6JOn8=</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="148">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjuKDsynDA3pUhYbsLw4E6FwaGDmcGhodAHA3EGkB8womB4YsTQ0ObM8OmM24MDKecGJaIAemTQLUFQHktID4DVHMBiBWcGQ64AMWLgWI3nBgcuIHsc04MM567MjDscGYQEAHSFs4A6+UctQ==</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="11" defaultArrayLength="26" id="function=1 process=0 scan=506">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.774" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="184">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGBouM1c7cDAwKAwjwVMM+TyQug7wmD6wVYRML1grRFEfKtTtQMjA4PDsiAwfWDZRoi64oNg+kAvSw1Y/JRKDVj8kQmYTvjgAqYVTgdB5AVCwfwFzi0Q+auHIeJBLLVge5hYa8H27BeB8M+p1EL0m4Dphi8uYPkD/0LA/AeTE2sdAGs4NlI=</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="132">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjEBB3ZXiw14WBgdmZoUHfheEAtwtDw3pnBgYOIF4IxB+cGBhuAPEbJwYWKzeGD3WuDA48QPVpQDkRIP4ClPvjxNDQDtR/GMjf4gw2g2GBM8OHAFeGBVvBZgMAGisaCQ==</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="12" defaultArrayLength="20" id="function=1 process=0 scan=507">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.781" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="152">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGBIOMNc7cDAwLBgLQuYPvBYGEw3bBepdmBkYHCYbQThn3MC0wwzgsDiBxSSwPwH1y+C6YSN3DVgdZdUwPSByyYQ/l8XMO3Aw1oLohWmqoDpBTKqYDphswmYZvjnApH/FAKRd06sdQAA5O8o2w==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="100">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjaPjlwnDADYi5XRgYSp0ZGuY5MzC4A3EAEPMA8SUnBoYrTgwXZrgyLLgAVNMEVDMbKJ4AxC5ALO7MoPASKM4JxI+cAETAE40=</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="13" defaultArrayLength="21" id="function=1 process=0 scan=508">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.788" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="152">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGA4cJm52oGBgaFhKwuYXnBWGEwfmC9S7cDIwOCwzAgi/t4Zwl8dBFF/QaUGLL5JG0wr3DapAcu/dwHTB04EgcUbfjZD+CUzIerqWGpBdMJmlVqIfhMI/48LmG6YHgihpUMh8qGJtQ4A3jEtPg==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="104">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjaJB3ZWhocWY4kOPCwFDvzMDwB4i1gdjSmYGj15WBQdCZoWEXUO4EUCwRiIWA+J4TQ8NCID0ZiP85MThMAsovALI5gTS7MwAuzBJh</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="14" defaultArrayLength="23" id="function=1 process=0 scan=509">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.796" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="164">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGB4cJS52oGRgcFhLku1AwMDQ8MjYTD9YLEIRHyRMpjvsMUIwl8fBJFnSoGIt2wE0wvOqtSA9V8yAdMPjluDaYcfLjVQfWD+gcuTIfTVw2DxA6tYasH6+pRrwfxdKmD+g30mYDrhuQuYVtgUWAsxL6TWAQDE1jMi</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="120">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjeHDchaGBy4WBQR+IeZ0ZGC45MTS8dGZoOAJk/3BiYHjnxPBivitDwiqg/CMgfy1QnAOITwDZb4DYB8h+4cTgYAk0Z7szg0MnUF2eM8MBVhcAlFMYlg==</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="15" defaultArrayLength="21" id="function=1 process=0 scan=510">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.803" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="148">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGB4cI652oEBSK9jAdMLnglD+MuNIHxjFzDdMDUIIj55I0T8rEqNAyMDg8NF7RoQn+G5CYT/2QXMX3AsCCLOngzlZ4NphduLwfSDKpZasPwuFTCtsMEETCd8d4GIdwWC6QfcobUOABlwLIs=</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="100">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjOHDEhYGB05mh4YkzA4MykM0NpPuA+JETwwQrV4YGILuhDyhuChSTB2IeIH7ixMDwC4IbXgD5zs4MCvOBamSBaqc4AwA+BhPK</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="16" defaultArrayLength="18" id="function=1 process=0 scan=511">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.81" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="136">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjYGA4cJG52oEBCGaxgGmFm8IQ/hoRMP1gsRGEnhUEphesZakB0Ql3uCH0QREwzXBVBUwvOK0Nph/cM6lxYGRgcDgfBBEvZ6kFq9+hUgsSP3DHBMx3+OECpg+IhtY6AAAZUSU1</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="92">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjODDNhcGB1YWBYYszA4OMM0ODKJB9GMgOA2JnIA5wZnjQ7crAoOnM4LACKOcEFGMC4hYg2x4oFurC0PDHGQAZbA7/</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+        <spectrum index="17" defaultArrayLength="18" id="function=1 process=0 scan=512">
+          <cvParam cvRef="PSI-MS" accession="MS:1000579" name="MS1 spectrum" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000511" name="ms level" value="1"/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000130" name="positive scan" value=""/>
+          <cvParam cvRef="PSI-MS" accession="MS:1000127" name="centroid spectrum" value=""/>
+          <scanList count="1">
+            <cvParam cvRef="PSI-MS" accession="MS:1000795" name="no combination" value=""/>
+            <scan>
+              <cvParam cvRef="PSI-MS" accession="MS:1000016" name="scan start time" value="3.817" unitCvRef="UO" unitAccession="UO:0000031" unitName="minute"/>
+            </scan>
+          </scanList>
+          <binaryDataArrayList count="2">
+            <binaryDataArray encodedLength="140">
+              <cvParam cvRef="PSI-MS" accession="MS:1000514" name="m/z array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000040" unitName="m/z"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000523" name="64-bit float" value=""/>
+              <binary>eJxjZGA4cIq52oGBgeHBLBYwfeCzMJhOWGVU7cDIwOCw3gkivj8ITDesKYKon8dSA1Z3kBtMK1xRgdAHtMH0gacmEPk9QWCawW01mH5QxVIL5m9VqQWZf+CVC5i/gCO01gEA5cYmEQ==</binary>
+            </binaryDataArray>
+            <binaryDataArray encodedLength="88">
+              <cvParam cvRef="PSI-MS" accession="MS:1000515" name="intensity array" value="" unitCvRef="PSI-MS" unitAccession="MS:1000131" unitName="number of detector counts"/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000574" name="zlib compression" value=""/>
+              <cvParam cvRef="PSI-MS" accession="MS:1000521" name="32-bit float" value=""/>
+              <binary>eJxjaAh1YWDQcWZguOfEwPATSEsBcQ0QswDxVCDmdmZ4YO7KwFAJZE8GqhUG0ieAag2dGRr4gfxEIG52BgDxKQ1v</binary>
+            </binaryDataArray>
+          </binaryDataArrayList>
+        </spectrum>
+      </spectrumList>
+    </run>
+  </mzML>
+  <indexList count="1">
+    <index name="spectrum">
+      <offset idRef="function=1 process=0 scan=23">826</offset>
+      <offset idRef="function=1 process=0 scan=496">2690</offset>
+      <offset idRef="function=1 process=0 scan=497">4794</offset>
+      <offset idRef="function=1 process=0 scan=498">6848</offset>
+      <offset idRef="function=1 process=0 scan=499">8984</offset>
+      <offset idRef="function=1 process=0 scan=500">11116</offset>
+      <offset idRef="function=1 process=0 scan=501">13320</offset>
+      <offset idRef="function=1 process=0 scan=502">15584</offset>
+      <offset idRef="function=1 process=0 scan=503">17776</offset>
+      <offset idRef="function=1 process=0 scan=504">19972</offset>
+      <offset idRef="function=1 process=0 scan=505">22139</offset>
+      <offset idRef="function=1 process=0 scan=506">24296</offset>
+      <offset idRef="function=1 process=0 scan=507">26425</offset>
+      <offset idRef="function=1 process=0 scan=508">28490</offset>
+      <offset idRef="function=1 process=0 scan=509">30559</offset>
+      <offset idRef="function=1 process=0 scan=510">32656</offset>
+      <offset idRef="function=1 process=0 scan=511">34717</offset>
+      <offset idRef="function=1 process=0 scan=512">36756</offset>
+    </index>
+  </indexList>
+  <indexListOffset>38830</indexListOffset>
+  <fileChecksum>3fc67d75118c8f61b070da9662cf90d4578fcb90</fileChecksum>
+</indexedmzML>

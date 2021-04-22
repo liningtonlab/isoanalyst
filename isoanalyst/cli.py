@@ -82,6 +82,9 @@ def cli():
 def run_validate(
     name: str, input_specification: Path, configfile: Optional[Path] = None
 ):
+    """
+    Performs some simple checks on your input specification file
+    """
     click.echo(f"Running validation for {name} on {input_specification}")
     spec = InputSpec.from_csv(input_specification)
     try:
@@ -118,7 +121,7 @@ def run_validate(
     default=CONFIG["tolerances"]["precmz"][1],
     show_default=True,
     callback=gt_zero,
-    help="precmz tolerance in PPM",
+    help="M/Z tolerance in PPM",
 )
 @click.option(
     "--rttol",
@@ -146,7 +149,7 @@ def run_prep(
     rttol: int,
     configfile: Optional[Path] = None,
 ):
-
+    """Prepares the ground truth feature list"""
     click.echo(f"Running prep for {name} using {input_specification}")
     spec = InputSpec.from_csv(input_specification)
     config = get_config(configfile, minreps=minreps, mztol=mztol, rttol=rttol)
@@ -167,26 +170,12 @@ def run_prep(
 @cli.command("scrape")
 @common_options
 @click.option(
-    "--restart/--no-restart",
-    default=False,
-    show_default=True,
-    help="Force restart scraping (reloads all data) instead of applying new threshold",
-)
-@click.option(
-    "--minreps",
-    type=int,
-    default=CONFIG["minreps"],
-    show_default=True,
-    callback=gt_zero,
-    help="Minimum reps to consider in replication comparison",
-)
-@click.option(
     "--minscans",
     type=int,
     default=2,
     show_default=True,
     callback=gt_zero,
-    help="Minumum number of scans",
+    help="Minimum number of scans",
 )
 @click.option(
     "--mztol",
@@ -194,15 +183,7 @@ def run_prep(
     default=CONFIG["tolerances"]["precmz"][1],
     show_default=True,
     callback=gt_zero,
-    help="precmz tolerance in PPM",
-)
-@click.option(
-    "--rttol",
-    type=float,
-    default=CONFIG["tolerances"]["rettime"][1],
-    show_default=True,
-    callback=gt_zero,
-    help="rettime tolerance in min",
+    help="M/Z tolerance in PPM",
 )
 @click.option(
     "--minintensity",
@@ -242,17 +223,15 @@ def run_scrape(
     jobs: int,
     minscans: int,
     scanwindow: int,
-    minreps: int,
     mztol: float,
-    rttol: float,
     minintensity: int,
     minrt: float,
-    restart: bool,
     configfile: Optional[Path] = None,
 ):
+    """Collects relevant scan data for all members of the ground truth feature list"""
     click.echo(f"Running scrape for {name} using {input_specification}")
     spec = InputSpec.from_csv(input_specification)
-    config = get_config(configfile, minreps=minreps, mztol=mztol, rttol=rttol)
+    config = get_config(configfile, mztol=mztol)
     source_dir = Path(name.replace(" ", "_"))
     core.isotope_scraper(
         input_spec=spec,
@@ -264,7 +243,6 @@ def run_scrape(
         min_intensity=minintensity,
         min_rt=minrt,
         config=config,
-        restart=restart,
     )
 
 
@@ -287,7 +265,7 @@ def run_scrape(
     default=5,
     show_default=True,
     callback=gt_zero,
-    help="Minumum number of scans",
+    help="Minimum number of scans",
 )
 @click.option(
     "--jobs",
@@ -305,6 +283,7 @@ def run_analyze(
     minconditions: int,
     configfile: Optional[Path] = None,
 ):
+    """Performs Stable Isotope Labelling detecting and analysis"""
     click.echo(f"Running analysis for {name} using {input_specification}")
     spec = InputSpec.from_csv(input_specification)
     source_dir = Path(name.replace(" ", "_"))
