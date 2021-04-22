@@ -17,10 +17,17 @@ Full program documentation is available at [liningtonlab.github.io/isoanalyst/](
 
 This should install a Python 3.8+ environment with all the necessary packages. 
 
+You then need to activate the virtual environment.
+
+`conda activate isoanalyst`
+
 __Note:__ This program uses the `rtree` library, which requires bindings
-for `libspatial`. This has been known to cause problems on Windows installs. `rtree` installed 
+for `libspatialindex`. This has been known to cause problems on Windows installs. `rtree` installed 
 from PyPi (`pip install rtree`) should work out of the box. The `environment.yml` installation specification 
-has been configured to do this for you.
+has been configured to do this for you. If you receive an error on running
+`isoanalyst --version` this library is the most likely culprit. You can try
+to install it manually again with `conda install -c conda-forge rtree` (this has been found to be 
+required on macOS).
 
 Then to install the IsoAnalyst CLI program run
 

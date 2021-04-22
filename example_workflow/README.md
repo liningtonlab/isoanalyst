@@ -8,13 +8,13 @@ of mzML files in the `mzmls` directory and CSV feature list files in the `featur
 directory.
 
 The data were prepared by taking a selection of about 10 features from one of the full publication
-expirements, and extracting all the mass features within 20 Da M/Z and 0.06 min retention time
+experiments, and extracting all the mass features within 20 Da M/Z and 0.06 min retention time
 from the original all scan data in mzML files.
 These data were then composed back into new (much smaller) mzML files using the [psims](https://github.com/mobiusklein/psims)
 library.
 
 These mzML files were then re-processed using MzMine (v2.53) to prepare feature lists using our
-recommended generalized approach and exported as CSVs.'
+recommended generalized approach and exported as CSVs.
 
 Example output files are in the `EXAMPLE` directory, or you can install IsoAnalyst yourself
 and re-run the analysis by running `snakemake -j1` from this directory.
