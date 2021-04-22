@@ -84,7 +84,6 @@ def isotope_scraper(
     min_intensity: int,
     min_rt: float,
     n_jobs: int,
-    restart: bool,
 ):
     """Scrape all the isotope data for all ions in the all scan data"""
     conditions = input_spec.get_conditions()
@@ -95,16 +94,13 @@ def isotope_scraper(
     out_dir = source_dir.joinpath("all_scan_data")
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    def run_isoslicer(cond, restart=restart, features=features):
+    def run_isoslicer(cond, features=features):
         outfile = out_dir.joinpath(f"all_ions_{cond}.csv")
-        if not restart and outfile.exists():
-            print(f"{cond} already processed")
-            return
 
         # add replicate scan files for current condition
         c_scans = input_spec.get_scan_filepaths(cond)
         scanfile = out_dir.joinpath(f"all_scans_{cond}.csv")
-        if not restart and scanfile.exists():
+        if scanfile.exists():
             print(f"Loading all scan file - {scanfile}")
             scan_df = pd.read_csv(scanfile)
         else:

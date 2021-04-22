@@ -25,14 +25,11 @@ rule prep:
   shell:
     "isoanalyst prep -n {NAME} -i {INPUT_SPEC} --mztol {TOL} --minreps 1 --no-blank-remove"
 
-# default minreps = 3
-# `--retry` by default because assuming changes to config
-# Remove this flag if you want to try continuing analysis
 rule scrape:
   input: "prep.done"
   output: touch("scrape.done")
   shell:
-    "isoanalyst scrape -n {NAME} -i {INPUT_SPEC} --mztol {TOL} --minscans {MINSCAN_SCRAPE} --minintensity {MININTENSITY} --restart"
+    "isoanalyst scrape -n {NAME} -i {INPUT_SPEC} --mztol {TOL} --minscans {MINSCAN_SCRAPE} --minintensity {MININTENSITY}"
 
 # default minconditions = 1
 rule analyze:
