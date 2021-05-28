@@ -362,26 +362,26 @@ guidelines for organizing your input specification.
 
 ## Data Requirements
 
-#### 1. Feature lists
+#### 1.Scan Data
+
+Files containing centroided scan data are required for all unlabeled controls and labeled samples. Four technical replicates are recommended for each condition.
+
+Generic CSV tabular inputs minimally with `["FunctionScanIndex", "RT", "MZ", "Intensity"]` column headers. These are compatible msExpress func001 files.
+
+Scan data can be imported as mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msconvert.html). Standard GNPS settings recommended for MSconvert. 
+
+
+#### 2. Feature Lists
+
+Feature lists are required for unlabeled control samples only. Four technical replicates are recommended for every feedstock condition used. Three additional feature lists are required for solvent injection blanks. 
 
 Generic CSV tabular inputs minimally with `["Sample", "PrecMz", "PrecZ", "PrecIntensity", "RetTime", "ScanLowRange", "ScanHighRange"]` column headers. These are compatible msExpress CPPIS files.
 
-Working on MzMine2 import pipeline.
+Feature lists may be made using the standard MZmine 2 workflow. Parameters for mass detection, chromatogram building, and deconvolution are dependent on the MS instrument used and data quality (ie signal to noise). The isotope peak grouper function must be used in order to deistope all features in the list. Every feature in this list should be identified by the monosisotopic m/z value. 
 
-MzMine outputs only require the `["row m/z", "row retention time"]` columns. 
+Export .csv files from MZmine 2 with the columns `["row m/z", "row retention time"]`
 
-__Question:__ Intensity? Use MzMine Peak Area?
-
-The program will then set a window of 10 scans on both sides of the center scan index detected during all scan importing.
-
-
-#### 2. Scan Data
-
-Generic CSV tabular inputs minimally with `["FunctionScanIndex", "RT", "MZ", "Intensity"]` column headers.
-
-Can import func0001 CSVs from msExpress.
-
-Can import mzMLs from [msConvert](http://proteowizard.sourceforge.net/tools/msconvert.html).
+Peak intensity is not required for feature lists; m/z and retention time values are used to get the isotopologue peak intensities from the scan data. The program will then set a window of 10 scans on both sides of the center scan index detected during all scan importing.
 
 
 #### Data Collection Recommendation
