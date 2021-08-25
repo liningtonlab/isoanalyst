@@ -436,7 +436,7 @@ def condition_stats(data_dir, idxs, cond):
     return {
         f"{cond}_unlabelled": unlabelled,
         f"{cond}_labelled": label_list,
-        f"{cond}_labelled_count": label_count,
+        f"{cond}_count": label_count,
     }
 
 
@@ -499,12 +499,14 @@ def run_label_analysis(df, cond, out_dir):
             (grp.isotope == nat_iso) & (grp.isotopomer == "M1vM0"), "slope"
         ]
         # if only two instances of slope calculated, skip
-        if len(nat_ratio) < 2:
+        if len(nat_ratio) < 3:
             continue
 
         labelled_slc = grp[grp.isotope == label_iso]
         for idx in labelled_slc.isotopomer.unique():
             labelled_ratio = labelled_slc.loc[labelled_slc.isotopomer == idx, "slope"]
+            if len(labelled_ratio) < 3:
+                continue
             t, p = ttest_ind(
                 nat_ratio.values,
                 labelled_ratio.values,

@@ -86,7 +86,7 @@ def isotope_scraper(
     n_jobs: int,
 ):
     """Scrape all the isotope data for all ions in the all scan data"""
-    conditions = input_spec.get_conditions()
+    conditions = input_spec.get_isoconditions()
     print("Running isotope scraper")
     features = utils.get_featurelist(source_dir=source_dir, exp_name=exp_name)
 
@@ -185,9 +185,21 @@ def isotope_label_detector(
     def run_label_detector(cond):
         out_file = slope_dir.joinpath(f"all_slope_data_{cond}.csv")
         print(f"Detecting labels in {cond}")
-        fil = scan_dir.joinpath(f"all_ions_{cond}.csv")
-        assert fil.exists()
-        df = pd.read_csv(fil)
+        
+        #load both unlabeled and labeled scan data for cond
+        scan_files = list(scan_dir.glob(f"all_ions_*{cond}.csv"))
+        scan_dfs = []
+        for s in scan_files:
+            assert s.exists()
+            s_df = pd.read_csv(s)
+            scan_dfs.append(s_df)
+        
+        df = utils.combine_dfs(scan_dfs)
+        
+        #fil = scan_dir.joinpath(f"all_ions_{cond}.csv")
+        #assert fil.exists()
+        #df = pd.read_csv(fil)
+        
         grouped = df.groupby(["exp_id", "isotope", "condition"])
         data = []
         for (e_id, iso, c), g in grouped:

@@ -26,6 +26,7 @@ class InputSpec:
                 "isotope",
                 "element",
                 "condition",
+                "isocondition",
                 "replicate",
             ]
         )
@@ -55,6 +56,13 @@ class InputSpec:
             i for i in lst if i.lower() != "blank" and not pd.isna(i)
         ]
         return remove_blank(self.df["condition"].unique())
+    
+    def get_isoconditions(self) -> List[str]:
+        """Get list of conditions as list. Automatically removes "blank" as a condition."""
+        remove_blank = lambda lst: [
+            i for i in lst if i.lower() != "blank" and not pd.isna(i)
+        ]
+        return remove_blank(self.df["isocondition"].unique())
 
     def get_feature_filepaths(self, condition_name: str) -> List[str]:
         """Get list of feature filepaths for a condition name.
@@ -74,7 +82,7 @@ class InputSpec:
             condition_name (str): Name of the condition.
         """
         return self.df[
-            (self.df["condition"].str.lower() == condition_name.lower())
+            (self.df["isocondition"].str.lower() == condition_name.lower())
             & (self.df["type"] == "s")
         ]["filepath"].values.tolist()
 
