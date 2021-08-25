@@ -1,4 +1,3 @@
-import pytest
 from pathlib import Path
 import pandas as pd
 
@@ -55,17 +54,15 @@ def test_get_scan_filepaths():
                 "tests/test_files/full_scan_nat_rep1.mzml",
                 "tests/test_files/full_scan_nat_rep2.mzml",
                 "tests/test_files/full_scan_nat_rep3.mzml",
-                "tests/test_files/full_scan_labelled_rep1.mzml",
-                "tests/test_files/full_scan_labelled_rep2.mzml",
-                "tests/test_files/full_scan_labelled_rep3.mzml",
             ],
         )
     )
-    assert expected == inp.get_scan_filepaths("cond1")
+    assert expected == inp.get_scan_filepaths("12cond1")
 
 
 def test_validate_success():
     inp = InputSpec.from_csv(TESTFILE)
+    print(inp.df.head())
     assert inp.validate()
 
 

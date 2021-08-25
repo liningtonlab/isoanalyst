@@ -1,6 +1,6 @@
 import pandas as pd
 from pathlib import Path
-from typing import Union, List, Dict
+from typing import Type, Union, List, Dict
 
 
 class InputSpec:
@@ -11,6 +11,16 @@ class InputSpec:
     def from_csv(cls, fname: Union[str, Path]) -> "InputSpec":
         """Factory method to load InputSpec from CSV"""
         df = pd.read_csv(fname)
+
+        def get_iso(row):
+            try:
+                return int(row.isotope)
+            except ValueError:
+                return ""
+
+        df["isocondition"] = df.apply(
+            lambda row: f"{get_iso(row)}{row.condition}", axis=1
+        )
         df["filepath"] = df.filepath.apply(Path)
         return cls(df)
 
@@ -56,7 +66,7 @@ class InputSpec:
             i for i in lst if i.lower() != "blank" and not pd.isna(i)
         ]
         return remove_blank(self.df["condition"].unique())
-    
+
     def get_isoconditions(self) -> List[str]:
         """Get list of conditions as list. Automatically removes "blank" as a condition."""
         remove_blank = lambda lst: [
