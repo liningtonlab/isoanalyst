@@ -418,3 +418,45 @@ The columns of the summary file represent each SIL condition used. In these data
 | SERY_25 | 2.54 | 716.4649 | 1 | TRUE | TRUE | 4 | TRUE | TRUE | 7 | TRUE | TRUE | 4 | TRUE | TRUE | 1 | 
 | SERY_23 | 2.54 | 576.3832 | 1 | TRUE | TRUE | 4 | TRUE | TRUE | 7 | TRUE | TRUE | 2 | TRUE | TRUE | 1 | 
 | SERY_26 | 2.54 | 558.3732 | 1 | TRUE | TRUE | 4 | TRUE | TRUE | 7 | TRUE | TRUE | 2 | TRUE | TRUE | 1 | 
+
+### Visualizing Results in Tableau
+
+These data are generated in a .csv format and can be manually interrogated. We use a program called Tableau to plot the data in the summary file for easier interrogation. Tableau is a data visualization software for which there is a free version available to academics. This step-by-step guide will allow researchers to utilize the IsoAnalyst output file in Tableau to allow for easier data analysis. We found that this program allows for a much easier visualization to compare SIL incorporation across related MS features. 
+
+1. Import .csv file into Tableau. 
+
+<img width="1005" alt="1_data_import" src="https://user-images.githubusercontent.com/16393148/131073763-1ea7aacd-88c3-4fc6-88c9-8289d691beff.png">
+
+
+
+2. To set up the data overview, measures (green) and dimensions (blue) on left panel can be dragged to rows and columns 
+
+<img width="1000" alt="2_blank_sheet" src="https://user-images.githubusercontent.com/16393148/131073821-00445cc8-98bb-44b7-94ad-573f8f4ce4c8.png">
+
+When initially dragging a measure onto the graph, use the dropdown menu to change to a dimension
+
+![3_change_dimension](https://user-images.githubusercontent.com/16393148/131073874-1fd4a78f-4a38-4d2f-b980-5c6e4a7f49e4.png)
+
+
+
+3. The data overview shown below allows visualization of related masses and their retention times. Vertically aligned MS features can be observed and compared to associate related features based on RT and SIL incorporation.
+
+![4_mz_display](https://user-images.githubusercontent.com/16393148/131073957-19d427ee-7190-430f-b68b-29ffd7f3170e.png)
+
+
+
+4. Additional measures can be added to the marks toolbar as details which appear when hovering over mz features in the overview graph. Drag the exp_id dimension to the color tab in the mark toolbar to add a unique identifier to every feature. 
+
+![5_exp_id_colors](https://user-images.githubusercontent.com/16393148/131074074-6018afea-aa1e-4185-b06d-065dac99aa37.png)
+
+Features can then be selected and grouped in sets
+
+![6_exp_id_set_eryA](https://user-images.githubusercontent.com/16393148/131074106-0b05124c-dcc5-41ad-828d-1a455a92a547.png)
+
+
+
+5. These sets can be used to filter the data in additional worksheets such as the bar graphs indicating SIL incorporation shown below. Extensive tutorials on creating and manipulating worksheets are available on the Tableau website. In particular this article contains information on modifying colors, formatting, and other details to achieve desired visualizations of the data. (https://help.tableau.com/current/pro/desktop/en-us/visual_best_practices.htm)
+
+<img width="1161" alt="7_bar_graphs_ery_A" src="https://user-images.githubusercontent.com/16393148/131074146-548d7450-7886-4036-9843-1262a0ec023b.png">
+
+
