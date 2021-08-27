@@ -402,3 +402,19 @@ Running pytest is as simple as running `pytest` from the root directory of the c
 To install the `isoanalyst` toolchain in a development environment, during installation use
 
 `pytest setup.py develop` 
+
+## Data Output and Visualization 
+
+The summary output file from IsoAnalyst contains rows corresponding to every MS feature from the ground truth feature list which has SIL incorporation detected in two or more conditions. Using the parameters in snakemake, this filtered summary list can be unfiltered (containing all MS features from ground truth list regardless of SIL incorporation) or filtered to contain features labeled in a minimum number of conditions. We recommend two conditions in order to filter out those features with labeling only in a single condition.
+
+The columns of the summary file represent each SIL condition used. In these data the following abbreviations are used: ACE ([1-13C]acetate), PROP ([1-13C]propionate), MET ([methyl-13C]methionine), and GLU ([1-15N]glutamate). There is a column containing a boolean value for whether SIL incorporation was detected and a column containing an integer number representing how many position enriched by SIL were detected in that condition. 
+
+
+#### Summary Output Example
+
+| Exp_ID  | RetTime | PrecMz | PrecZ | ACE_unlabelled | ACE_labelled | ACE_count | PROP_unlabelled | PROP_labelled | PROP_count | MET_unlabelled | MET_labelled | MET_count | GLU_unlabelled | GLU_labelled | GLU_count | 
+| --- | --- | --- | --- | --- | --- |--- | --- | --- | --- | --- | --- |--- | --- | --- | --- |
+| SERY_32 | 2.54 | 734.4764 | 1 | TRUE | TRUE | 4 | TRUE | TRUE | 7 | TRUE | TRUE | 4 | TRUE | TRUE | 1 | 
+| SERY_25 | 2.54 | 716.4649 | 1 | TRUE | TRUE | 4 | TRUE | TRUE | 7 | TRUE | TRUE | 4 | TRUE | TRUE | 1 | 
+| SERY_23 | 2.54 | 576.3832 | 1 | TRUE | TRUE | 4 | TRUE | TRUE | 7 | TRUE | TRUE | 2 | TRUE | TRUE | 1 | 
+| SERY_26 | 2.54 | 558.3732 | 1 | TRUE | TRUE | 4 | TRUE | TRUE | 7 | TRUE | TRUE | 2 | TRUE | TRUE | 1 | 
